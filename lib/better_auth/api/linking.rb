@@ -1,0 +1,50 @@
+require_relative 'better_auth'
+require_relative '../messages/linking'
+
+module BetterAuth
+  module API
+    class BetterAuthServer
+      def link_device(message)
+        request = Messages::LinkDeviceRequest.parse(message)
+
+        public_key = @store.authentication.key.public(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.device
+        )
+
+        request.verify(@crypto.verifier, public_key)
+
+        link_container = request.payload.request.link
+
+        link_container.verify(
+          @crypto.verifier,
+          link_container.payload.authentication.public_key
+        )
+
+        unless link_container.payload.authentication.identity.casecmp?(request.payload.request.authentication.identity)
+          raise 'mismatched identities'
+        end
+
+        @store.authentication.key.register(
+          link_container.payload.authentication.identity,
+          link_container.payload.authentication.device,
+          link_container.payload.authentication.public_key,
+          link_container.payload.authentication.rotation_hash,
+          true
+        )
+
+        response_key_hash_value = response_key_hash
+
+        response = Messages::LinkDeviceResponse.new_response(
+          Messages::LinkDeviceResponsePayload.new,
+          response_key_hash_value,
+          request.payload.access.nonce
+        )
+
+        response.sign(@crypto.key_pair.response)
+
+        response.serialize
+      end
+    end
+  end
+end
