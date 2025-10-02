@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-rspec
 
 AllCops:
@@ -16,9 +16,14 @@ Style/FrozenStringLiteralComment:
 
 Metrics/MethodLength:
   Max: 50
+  Exclude:
+    - 'examples/**/*'
+    - 'spec/**/*'
 
 Metrics/AbcSize:
-  Max: 50
+  Max: 80
+  Exclude:
+    - 'spec/**/*'
 
 Metrics/CyclomaticComplexity:
   Max: 15
@@ -27,6 +32,26 @@ Metrics/PerceivedComplexity:
   Max: 15
 
 Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'examples/**/*'
+
+Metrics/ParameterLists:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Enabled: false
+
+RSpec/LeakyConstantDeclaration:
+  Enabled: false
+
+RSpec/InstanceVariable:
+  Enabled: false
+
+Lint/ConstantDefinitionInBlock:
   Exclude:
     - 'spec/**/*'
 

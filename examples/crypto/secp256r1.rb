@@ -72,9 +72,9 @@ module Examples
         oid_ec_public_key = [0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01].pack('C*')
         oid_prime256v1 = [0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07].pack('C*')
         algorithm = OpenSSL::ASN1::Sequence.new([
-          OpenSSL::ASN1.decode(oid_ec_public_key),
-          OpenSSL::ASN1.decode(oid_prime256v1)
-        ])
+                                                  OpenSSL::ASN1.decode(oid_ec_public_key),
+                                                  OpenSSL::ASN1.decode(oid_prime256v1)
+                                                ])
         subject_public_key = OpenSSL::ASN1::BitString.new(uncompressed_bytes)
         ec_key_der = OpenSSL::ASN1::Sequence.new([algorithm, subject_public_key]).to_der
 
