@@ -5,7 +5,7 @@ module BetterAuth
         raise NotImplementedError
       end
 
-      def validate(identity, key_hash)
+      def rotate(identity, old_hash, new_hash)
         raise NotImplementedError
       end
     end

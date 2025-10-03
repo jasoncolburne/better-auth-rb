@@ -329,12 +329,15 @@ RSpec.describe 'BetterAuth API' do
     # Recover account
     recovered_authentication_key = Examples::Crypto::Secp256r1.new
     recovered_next_authentication_key = Examples::Crypto::Secp256r1.new
+    next_recovery_key = Examples::Crypto::Secp256r1.new
 
     recovered_authentication_public_key = recovered_authentication_key.public
     recovered_next_authentication_public_key = recovered_next_authentication_key.public
+    next_recovery_public_key = next_recovery_key.public
 
     recovered_device = hasher.sum(recovered_authentication_public_key.bytes)
     rotation_hash = hasher.sum(recovered_next_authentication_public_key.bytes)
+    next_recovery_hash = hasher.sum(next_recovery_public_key.bytes)
 
     nonce = noncer.generate128
 
@@ -344,6 +347,7 @@ RSpec.describe 'BetterAuth API' do
           device: recovered_device,
           identity: identity,
           public_key: recovered_authentication_public_key,
+          recovery_hash: next_recovery_hash,
           recovery_key: recovery_public_key,
           rotation_hash: rotation_hash
         )
@@ -366,12 +370,16 @@ RSpec.describe 'BetterAuth API' do
     # Link device
     linked_authentication_key = Examples::Crypto::Secp256r1.new
     linked_next_authentication_key = Examples::Crypto::Secp256r1.new
+    recovered_next_next_authentication_key = Examples::Crypto::Secp256r1.new
 
     linked_authentication_public_key = linked_authentication_key.public
     linked_next_authentication_public_key = linked_next_authentication_key.public
+    recovered_next_next_authentication_public_key = recovered_next_next_authentication_key.public
 
     linked_device = hasher.sum(linked_authentication_public_key.bytes)
     rotation_hash = hasher.sum(linked_next_authentication_public_key.bytes)
+
+    recovered_next_rotation_hash = hasher.sum(recovered_next_next_authentication_public_key.bytes)
 
     nonce = noncer.generate128
 
@@ -392,14 +400,16 @@ RSpec.describe 'BetterAuth API' do
       BetterAuth::Messages::LinkDeviceRequestPayload.new(
         authentication: BetterAuth::Messages::LinkDeviceRequestAuthentication.new(
           device: recovered_device,
-          identity: identity
+          identity: identity,
+          public_key: recovered_next_authentication_public_key,
+          rotation_hash: recovered_next_rotation_hash
         ),
         link: link_container
       ),
       nonce
     )
 
-    link_device_request.sign(recovered_authentication_key)
+    link_device_request.sign(recovered_next_authentication_key)
 
     message = link_device_request.serialize
 
