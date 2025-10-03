@@ -58,12 +58,7 @@ module BetterAuth
           request.payload.request.authentication.rotation_hash
         )
 
-        public_key = @store.authentication.key.public(
-          request.payload.request.authentication.identity,
-          request.payload.request.authentication.device
-        )
-
-        request.verify(@crypto.verifier, public_key)
+        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
 
         @store.authentication.key.revoke_device(
           request.payload.request.authentication.identity,
