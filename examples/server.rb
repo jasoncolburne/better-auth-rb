@@ -128,6 +128,10 @@ module Examples
       wrap_response(message) { |msg| @ba.link_device(msg) }
     end
 
+    def unlink(message)
+      wrap_response(message) { |msg| @ba.unlink_device(msg) }
+    end
+
     def start_authentication(message)
       wrap_response(message) { |msg| @ba.start_authentication(msg) }
     end
@@ -195,16 +199,8 @@ set :port, 8080
 
 server = Examples::Server.new
 
-post '/register/create' do
+post '/account/create' do
   server.create(request.body.read)
-end
-
-post '/register/recover' do
-  server.recover(request.body.read)
-end
-
-post '/register/link' do
-  server.link(request.body.read)
 end
 
 post '/authenticate/start' do
@@ -221,6 +217,18 @@ end
 
 post '/rotate/access' do
   server.rotate_access(request.body.read)
+end
+
+post '/rotate/recover' do
+  server.recover(request.body.read)
+end
+
+post '/rotate/link' do
+  server.link(request.body.read)
+end
+
+post '/rotate/unlink' do
+  server.unlink(request.body.read)
 end
 
 post '/key/response' do

@@ -15,6 +15,10 @@ module BetterAuth
           hash
         )
 
+        @store.authentication.key.revoke_devices(
+          request.payload.request.authentication.identity
+        )
+
         @store.authentication.key.register(
           request.payload.request.authentication.identity,
           request.payload.request.authentication.device,

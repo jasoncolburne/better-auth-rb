@@ -5,12 +5,13 @@ module BetterAuth
   module Messages
     # Recover Account Request
     class RecoverAccountRequestAuthentication
-      attr_accessor :device, :identity, :public_key, :recovery_key, :rotation_hash
+      attr_accessor :device, :identity, :public_key, :recovery_hash, :recovery_key, :rotation_hash
 
-      def initialize(device:, identity:, public_key:, recovery_key:, rotation_hash:)
+      def initialize(device:, identity:, public_key:, recovery_hash:, recovery_key:, rotation_hash:)
         @device = device
         @identity = identity
         @public_key = public_key
+        @recovery_hash = recovery_hash
         @recovery_key = recovery_key
         @rotation_hash = rotation_hash
       end
@@ -20,6 +21,7 @@ module BetterAuth
           device: @device,
           identity: @identity,
           publicKey: @public_key,
+          recoveryHash: @recovery_hash,
           recoveryKey: @recovery_key,
           rotationHash: @rotation_hash
         }
@@ -61,6 +63,7 @@ module BetterAuth
           device: auth_data[:device],
           identity: auth_data[:identity],
           public_key: auth_data[:publicKey],
+          recovery_hash: auth_data[:recoveryHash],
           recovery_key: auth_data[:recoveryKey],
           rotation_hash: auth_data[:rotationHash]
         )
