@@ -13,12 +13,14 @@ module Examples
         nil
       end
 
-      def validate(identity, hash)
+      def rotate(identity, old_hash, new_hash)
         stored = @data_by_identity[identity]
 
         raise 'not found' unless stored
 
-        raise 'incorrect hash' unless stored.casecmp?(hash)
+        raise 'incorrect hash' unless stored.casecmp?(old_hash)
+
+        @data_by_identity[identity] = new_hash
 
         nil
       end

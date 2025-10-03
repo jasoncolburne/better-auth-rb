@@ -10,9 +10,10 @@ module BetterAuth
         request.verify(@crypto.verifier, request.payload.request.authentication.recovery_key)
 
         hash = @crypto.hasher.sum(request.payload.request.authentication.recovery_key.bytes)
-        @store.recovery.hash.validate(
+        @store.recovery.hash.rotate(
           request.payload.request.authentication.identity,
-          hash
+          hash,
+          request.payload.request.authentication.recovery_hash
         )
 
         @store.authentication.key.revoke_devices(
