@@ -7,13 +7,6 @@ module BetterAuth
       def link_device(message)
         request = Messages::LinkDeviceRequest.parse(message)
 
-        @store.authentication.key.rotate(
-          request.payload.request.authentication.identity,
-          request.payload.request.authentication.device,
-          request.payload.request.authentication.public_key,
-          request.payload.request.authentication.rotation_hash
-        )
-
         request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
 
         link_container = request.payload.request.link
@@ -26,6 +19,13 @@ module BetterAuth
         unless link_container.payload.authentication.identity.casecmp?(request.payload.request.authentication.identity)
           raise 'mismatched identities'
         end
+
+        @store.authentication.key.rotate(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.device,
+          request.payload.request.authentication.public_key,
+          request.payload.request.authentication.rotation_hash
+        )
 
         @store.authentication.key.register(
           link_container.payload.authentication.identity,
@@ -51,14 +51,14 @@ module BetterAuth
       def unlink_device(message)
         request = Messages::UnlinkDeviceRequest.parse(message)
 
+        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
+
         @store.authentication.key.rotate(
           request.payload.request.authentication.identity,
           request.payload.request.authentication.device,
           request.payload.request.authentication.public_key,
           request.payload.request.authentication.rotation_hash
         )
-
-        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
 
         @store.authentication.key.revoke_device(
           request.payload.request.authentication.identity,
