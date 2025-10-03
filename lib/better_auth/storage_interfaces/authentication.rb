@@ -11,11 +11,11 @@ module BetterAuth
     end
 
     module AuthenticationKeyStore
-      def register(identity, device, current, rotation_hash, existing_identity)
+      def register(identity, device, public_key, rotation_hash, existing_identity)
         raise NotImplementedError
       end
 
-      def rotate(identity, device, current, rotation_hash)
+      def rotate(identity, device, public_key, rotation_hash)
         raise NotImplementedError
       end
 

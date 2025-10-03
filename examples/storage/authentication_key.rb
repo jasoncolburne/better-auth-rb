@@ -1,10 +1,10 @@
 module Examples
   module Storage
     class KeyState
-      attr_accessor :current, :rotation_hash
+      attr_accessor :public_key, :rotation_hash
 
-      def initialize(current:, rotation_hash:)
-        @current = current
+      def initialize(public_key:, rotation_hash:)
+        @public_key = public_key
         @rotation_hash = rotation_hash
       end
     end
@@ -15,12 +15,12 @@ module Examples
         @known_devices = {}
       end
 
-      def register(identity, device, current, rotation_hash, _existing_identity)
+      def register(identity, device, public_key, rotation_hash, _existing_identity)
         devices = @known_devices[identity] || {}
 
         raise 'already registered' if devices.key?(device)
 
-        devices[device] = KeyState.new(current: current, rotation_hash: rotation_hash)
+        devices[device] = KeyState.new(public_key: public_key, rotation_hash: rotation_hash)
         @known_devices[identity] = devices
 
         nil
@@ -33,7 +33,7 @@ module Examples
         instance = devices[device]
         raise 'device not found' unless instance
 
-        instance.current
+        instance.public_key
       end
 
       def rotate(identity, device, public_key, rotation_hash)
@@ -47,7 +47,7 @@ module Examples
 
         raise 'hash mismatch' unless hash.casecmp?(instance.rotation_hash)
 
-        devices[device] = KeyState.new(current: public_key, rotation_hash: rotation_hash)
+        devices[device] = KeyState.new(public_key: public_key, rotation_hash: rotation_hash)
         @known_devices[identity] = devices
 
         nil
