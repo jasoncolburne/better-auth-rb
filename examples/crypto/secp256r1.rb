@@ -12,6 +12,10 @@ module Examples
         Secp256r1Verifier.new
       end
 
+      def identity
+        public
+      end
+
       def public
         public_key = @private_key.public_key
         public_key_bytes = public_key.to_bn.to_s(2)
@@ -55,10 +59,6 @@ module Examples
     end
 
     class Secp256r1Verifier
-      def signature_length
-        88
-      end
-
       def verify(signature, public_key, message)
         public_key_bytes = Base64.urlsafe_decode64(public_key[4..])
 

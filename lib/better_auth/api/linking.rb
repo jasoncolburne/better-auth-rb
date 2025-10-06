@@ -35,11 +35,11 @@ module BetterAuth
           true
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::LinkDeviceResponse.new_response(
           Messages::LinkDeviceResponsePayload.new,
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 
@@ -65,11 +65,11 @@ module BetterAuth
           request.payload.request.link.device
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::UnlinkDeviceResponse.new_response(
           Messages::UnlinkDeviceResponsePayload.new,
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 

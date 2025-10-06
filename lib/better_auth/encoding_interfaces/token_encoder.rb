@@ -8,6 +8,10 @@ module BetterAuth
       def decode(token)
         raise NotImplementedError
       end
+
+      def signature_length(token)
+        raise NotImplementedError
+      end
     end
   end
 end

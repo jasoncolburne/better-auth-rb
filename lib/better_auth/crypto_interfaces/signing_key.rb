@@ -8,6 +8,10 @@ module BetterAuth
       def sign(message)
         raise NotImplementedError
       end
+
+      def identity
+        public
+      end
     end
   end
 end

@@ -15,13 +15,10 @@ module BetterAuth
       def verify(message, attributes)
         request = Messages::AccessRequest.parse(message)
 
-        access_public_key = @crypto.public_key.public
-
         identity, attributes = request.verify_access(
           @store.access_nonce,
           @crypto.verifier,
-          @crypto.public_key.verifier,
-          access_public_key,
+          @store.access_key_store,
           @encoding.token_encoder,
           @encoding.timestamper,
           attributes
@@ -32,10 +29,9 @@ module BetterAuth
     end
 
     class VerifierCryptoContainer
-      attr_accessor :public_key, :verifier
+      attr_accessor :verifier
 
-      def initialize(public_key:, verifier:)
-        @public_key = public_key
+      def initialize(verifier:)
         @verifier = verifier
       end
     end
@@ -50,10 +46,11 @@ module BetterAuth
     end
 
     class VerifierStoreContainer
-      attr_accessor :access_nonce
+      attr_accessor :access_nonce, :access_key_store
 
-      def initialize(access_nonce:)
+      def initialize(access_nonce:, access_key_store:)
         @access_nonce = access_nonce
+        @access_key_store = access_key_store
       end
     end
   end

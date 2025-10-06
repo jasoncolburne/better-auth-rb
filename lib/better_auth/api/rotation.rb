@@ -16,11 +16,11 @@ module BetterAuth
           request.payload.request.authentication.rotation_hash
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::RotateAuthenticationKeyResponse.new_response(
           Messages::RotateAuthenticationKeyResponsePayload.new,
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 

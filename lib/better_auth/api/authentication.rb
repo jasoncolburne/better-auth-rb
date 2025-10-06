@@ -12,13 +12,13 @@ module BetterAuth
           request.payload.request.authentication.identity
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::StartAuthenticationResponse.new_response(
           Messages::StartAuthenticationResponsePayload.new(
             authentication: Messages::StartAuthenticationResponseAuthentication.new(nonce: nonce)
           ),
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 
@@ -50,6 +50,7 @@ module BetterAuth
         refresh_expiry = @encoding.timestamper.format(refresh_expiry_time)
 
         access_token = Messages::AccessToken.new(
+          server_identity: @crypto.key_pair.access.identity,
           identity: identity,
           public_key: request.payload.request.access.public_key,
           rotation_hash: request.payload.request.access.rotation_hash,
@@ -63,13 +64,13 @@ module BetterAuth
 
         token = access_token.serialize_token(@encoding.token_encoder)
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::FinishAuthenticationResponse.new_response(
           Messages::FinishAuthenticationResponsePayload.new(
             access: Messages::FinishAuthenticationResponseAccess.new(token: token)
           ),
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 
