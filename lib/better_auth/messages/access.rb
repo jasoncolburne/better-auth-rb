@@ -5,10 +5,12 @@ module BetterAuth
   module Messages
     # AccessToken class - represents an access token with signature
     class AccessToken
-      attr_accessor :server_identity, :identity, :public_key, :rotation_hash, :issued_at, :expiry, :refresh_expiry, :attributes
+      attr_accessor :server_identity, :identity, :public_key, :rotation_hash, :issued_at, :expiry, :refresh_expiry,
+                    :attributes
       attr_reader :signature
 
-      def initialize(server_identity:, identity:, public_key:, rotation_hash:, issued_at:, expiry:, refresh_expiry:, attributes:)
+      def initialize(server_identity:, identity:, public_key:, rotation_hash:, issued_at:, expiry:, refresh_expiry:,
+                     attributes:)
         @server_identity = server_identity
         @identity = identity
         @public_key = public_key

@@ -166,7 +166,7 @@ module Examples
 
       request_obj = BetterAuth::Messages::AccessRequest.parse(message)
 
-      server_identity = @server_response_key.identity()
+      server_identity = @server_response_key.identity
 
       nonce = bad_nonce ? '0A0123456789' : request_obj.payload.access.nonce
 

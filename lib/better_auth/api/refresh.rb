@@ -5,7 +5,9 @@ require_relative '../messages/access'
 module BetterAuth
   module API
     class BetterAuthServer
+      # rubocop:disable Metrics/AbcSize
       def refresh_access_token(message)
+        # rubocop:enable Metrics/AbcSize
         request = Messages::RefreshAccessTokenRequest.parse(message)
 
         request.verify(@crypto.verifier, request.payload.request.access.public_key)

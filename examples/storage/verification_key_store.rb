@@ -11,6 +11,7 @@ module Examples
 
       def get(identity)
         raise "Key not found for identity: #{identity}" unless @keys.key?(identity)
+
         @keys[identity]
       end
     end

@@ -25,7 +25,7 @@ module Examples
         result
       end
 
-      def signature_length(token)
+      def signature_length(_token)
         # For secp256r1 signatures, the length is always 88 characters
         88
       end

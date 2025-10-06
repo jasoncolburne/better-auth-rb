@@ -99,7 +99,7 @@ RSpec.describe 'BetterAuth API' do
     server_access_key = Examples::Crypto::Secp256r1.new
 
     access_key_store = Examples::Storage::VerificationKeyStore.new
-    access_key_store.add(server_access_key.identity(), server_access_key)
+    access_key_store.add(server_access_key.identity, server_access_key)
 
     ba = BetterAuth::API::BetterAuthServer.new(
       crypto: BetterAuth::API::CryptoContainer.new(
