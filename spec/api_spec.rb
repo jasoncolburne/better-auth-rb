@@ -24,6 +24,7 @@ require_relative '../examples/storage/authentication_key'
 require_relative '../examples/storage/authentication_nonce'
 require_relative '../examples/storage/recovery_hash'
 require_relative '../examples/storage/timelock'
+require_relative '../examples/storage/verification_key_store'
 
 RSpec.describe 'BetterAuth API' do
   class MockAttributes
@@ -97,6 +98,9 @@ RSpec.describe 'BetterAuth API' do
 
     server_access_key = Examples::Crypto::Secp256r1.new
 
+    access_key_store = Examples::Storage::VerificationKeyStore.new
+    access_key_store.add(server_access_key.identity(), server_access_key)
+
     ba = BetterAuth::API::BetterAuthServer.new(
       crypto: BetterAuth::API::CryptoContainer.new(
         hasher: hasher,
@@ -132,7 +136,6 @@ RSpec.describe 'BetterAuth API' do
 
     av = BetterAuth::API::AccessVerifier.new(
       crypto: BetterAuth::API::VerifierCryptoContainer.new(
-        public_key: server_access_key,
         verifier: verifier
       ),
       encoding: BetterAuth::API::VerifierEncodingContainer.new(
@@ -140,7 +143,8 @@ RSpec.describe 'BetterAuth API' do
         timestamper: timestamper
       ),
       store: BetterAuth::API::VerifierStoreContainer.new(
-        access_nonce: access_nonce_store
+        access_nonce: access_nonce_store,
+        access_key_store: access_key_store
       )
     )
 

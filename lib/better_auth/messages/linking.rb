@@ -147,8 +147,8 @@ module BetterAuth
     end
 
     class LinkDeviceResponse < ServerResponse
-      def self.new_response(payload, response_key_hash, nonce)
-        ServerResponse.new_response(payload, response_key_hash, nonce)
+      def self.new_response(payload, server_identity, nonce)
+        ServerResponse.new_response(payload, server_identity, nonce)
       end
 
       def self.parse(message)
@@ -157,7 +157,7 @@ module BetterAuth
 
         access = ServerAccess.new(
           nonce: payload_data[:access][:nonce],
-          response_key_hash: payload_data[:access][:responseKeyHash]
+          server_identity: payload_data[:access][:serverIdentity]
         )
         response = LinkDeviceResponsePayload.new
 
@@ -269,8 +269,8 @@ module BetterAuth
     end
 
     class UnlinkDeviceResponse < ServerResponse
-      def self.new_response(payload, response_key_hash, nonce)
-        ServerResponse.new_response(payload, response_key_hash, nonce)
+      def self.new_response(payload, server_identity, nonce)
+        ServerResponse.new_response(payload, server_identity, nonce)
       end
 
       def self.parse(message)
@@ -279,7 +279,7 @@ module BetterAuth
 
         access = ServerAccess.new(
           nonce: payload_data[:access][:nonce],
-          response_key_hash: payload_data[:access][:responseKeyHash]
+          server_identity: payload_data[:access][:serverIdentity]
         )
         response = UnlinkDeviceResponsePayload.new
 
