@@ -1,10 +1,7 @@
 require_relative '../messages/access'
-require_relative '../messages/authentication'
-require_relative '../messages/creation'
-require_relative '../messages/linking'
-require_relative '../messages/recovery'
-require_relative '../messages/refresh'
-require_relative '../messages/rotation'
+require_relative '../messages/account'
+require_relative '../messages/device'
+require_relative '../messages/session'
 
 module BetterAuth
   module API

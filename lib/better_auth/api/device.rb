@@ -1,5 +1,5 @@
 require_relative 'better_auth'
-require_relative '../messages/linking'
+require_relative '../messages/device'
 
 module BetterAuth
   module API
@@ -69,6 +69,31 @@ module BetterAuth
 
         response = Messages::UnlinkDeviceResponse.new_response(
           Messages::UnlinkDeviceResponsePayload.new,
+          server_identity,
+          request.payload.access.nonce
+        )
+
+        response.sign(@crypto.key_pair.response)
+
+        response.serialize
+      end
+
+      def rotate_device(message)
+        request = Messages::RotateDeviceRequest.parse(message)
+
+        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
+
+        @store.authentication.key.rotate(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.device,
+          request.payload.request.authentication.public_key,
+          request.payload.request.authentication.rotation_hash
+        )
+
+        server_identity = @crypto.key_pair.response.identity
+
+        response = Messages::RotateDeviceResponse.new_response(
+          Messages::RotateDeviceResponsePayload.new,
           server_identity,
           request.payload.access.nonce
         )

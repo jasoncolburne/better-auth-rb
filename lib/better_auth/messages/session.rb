@@ -2,9 +2,9 @@ require_relative 'common'
 
 module BetterAuth
   module Messages
-    # Start Authentication Request
+    # Request Session Request
 
-    class StartAuthenticationRequestAuthentication
+    class RequestSessionRequestAuthentication
       attr_accessor :identity
 
       def initialize(identity:)
@@ -20,7 +20,7 @@ module BetterAuth
       end
     end
 
-    class StartAuthenticationRequestPayload
+    class RequestSessionRequestPayload
       attr_accessor :authentication
 
       def initialize(authentication:)
@@ -32,11 +32,11 @@ module BetterAuth
       end
 
       def self.from_hash(data)
-        new(authentication: StartAuthenticationRequestAuthentication.from_hash(data[:authentication]))
+        new(authentication: RequestSessionRequestAuthentication.from_hash(data[:authentication]))
       end
     end
 
-    class StartAuthenticationRequest < ClientRequest
+    class RequestSessionRequest < ClientRequest
       def self.parse(message)
         data = JSON.parse(message, symbolize_names: true)
         instance = allocate
@@ -49,17 +49,17 @@ module BetterAuth
         request_data = data[:payload][:request]
         access_data = data[:payload][:access]
 
-        auth = StartAuthenticationRequestAuthentication.new(identity: request_data[:authentication][:identity])
+        auth = RequestSessionRequestAuthentication.new(identity: request_data[:authentication][:identity])
         @payload = ClientPayload.new(
           access: ClientAccess.new(nonce: access_data[:nonce]),
-          request: StartAuthenticationRequestPayload.new(authentication: auth)
+          request: RequestSessionRequestPayload.new(authentication: auth)
         )
       end
     end
 
-    # Start Authentication Response
+    # Request Session Response
 
-    class StartAuthenticationResponseAuthentication
+    class RequestSessionResponseAuthentication
       attr_accessor :nonce
 
       def initialize(nonce:)
@@ -79,7 +79,7 @@ module BetterAuth
       end
     end
 
-    class StartAuthenticationResponsePayload
+    class RequestSessionResponsePayload
       attr_accessor :authentication
 
       def initialize(authentication:)
@@ -95,11 +95,11 @@ module BetterAuth
       end
 
       def self.from_hash(data)
-        new(authentication: StartAuthenticationResponseAuthentication.from_hash(data[:authentication]))
+        new(authentication: RequestSessionResponseAuthentication.from_hash(data[:authentication]))
       end
     end
 
-    class StartAuthenticationResponse < ServerResponse
+    class RequestSessionResponse < ServerResponse
       def self.parse(message)
         data = JSON.parse(message, symbolize_names: true)
         instance = allocate
@@ -117,14 +117,14 @@ module BetterAuth
             nonce: access_data[:nonce],
             server_identity: access_data[:serverIdentity]
           ),
-          response: StartAuthenticationResponsePayload.from_hash(response_data)
+          response: RequestSessionResponsePayload.from_hash(response_data)
         )
       end
     end
 
-    # Finish Authentication Request
+    # Create Session Request
 
-    class FinishAuthenticationRequestAccess
+    class CreateSessionRequestAccess
       attr_accessor :public_key, :rotation_hash
 
       def initialize(public_key:, rotation_hash:)
@@ -141,7 +141,7 @@ module BetterAuth
       end
     end
 
-    class FinishAuthenticationRequestAuthentication
+    class CreateSessionRequestAuthentication
       attr_accessor :device, :nonce
 
       def initialize(device:, nonce:)
@@ -158,7 +158,7 @@ module BetterAuth
       end
     end
 
-    class FinishAuthenticationRequestPayload
+    class CreateSessionRequestPayload
       attr_accessor :access, :authentication
 
       def initialize(access:, authentication:)
@@ -172,13 +172,13 @@ module BetterAuth
 
       def self.from_hash(data)
         new(
-          access: FinishAuthenticationRequestAccess.from_hash(data[:access]),
-          authentication: FinishAuthenticationRequestAuthentication.from_hash(data[:authentication])
+          access: CreateSessionRequestAccess.from_hash(data[:access]),
+          authentication: CreateSessionRequestAuthentication.from_hash(data[:authentication])
         )
       end
     end
 
-    class FinishAuthenticationRequest < ClientRequest
+    class CreateSessionRequest < ClientRequest
       def self.parse(message)
         data = JSON.parse(message, symbolize_names: true)
         instance = allocate
@@ -193,14 +193,14 @@ module BetterAuth
 
         @payload = ClientPayload.new(
           access: ClientAccess.new(nonce: access_data[:nonce]),
-          request: FinishAuthenticationRequestPayload.from_hash(request_data)
+          request: CreateSessionRequestPayload.from_hash(request_data)
         )
       end
     end
 
-    # Finish Authentication Response
+    # Create Session Response
 
-    class FinishAuthenticationResponseAccess
+    class CreateSessionResponseAccess
       attr_accessor :token
 
       def initialize(token:)
@@ -220,7 +220,7 @@ module BetterAuth
       end
     end
 
-    class FinishAuthenticationResponsePayload
+    class CreateSessionResponsePayload
       attr_accessor :access
 
       def initialize(access:)
@@ -236,11 +236,11 @@ module BetterAuth
       end
 
       def self.from_hash(data)
-        new(access: FinishAuthenticationResponseAccess.from_hash(data[:access]))
+        new(access: CreateSessionResponseAccess.from_hash(data[:access]))
       end
     end
 
-    class FinishAuthenticationResponse < ServerResponse
+    class CreateSessionResponse < ServerResponse
       def self.parse(message)
         data = JSON.parse(message, symbolize_names: true)
         instance = allocate
@@ -258,7 +258,128 @@ module BetterAuth
             nonce: access_data[:nonce],
             server_identity: access_data[:serverIdentity]
           ),
-          response: FinishAuthenticationResponsePayload.from_hash(response_data)
+          response: CreateSessionResponsePayload.from_hash(response_data)
+        )
+      end
+    end
+
+    # Refresh Session Request
+    class RefreshSessionRequestAccess
+      attr_accessor :public_key, :rotation_hash, :token
+
+      def initialize(public_key:, rotation_hash:, token:)
+        @public_key = public_key
+        @rotation_hash = rotation_hash
+        @token = token
+      end
+
+      def to_h
+        {
+          publicKey: @public_key,
+          rotationHash: @rotation_hash,
+          token: @token
+        }
+      end
+
+      def to_json(*)
+        to_h.to_json(*)
+      end
+    end
+
+    class RefreshSessionRequestPayload
+      attr_accessor :access
+
+      def initialize(access:)
+        @access = access
+      end
+
+      def to_h
+        { access: @access.to_h }
+      end
+
+      def to_json(*)
+        to_h.to_json(*)
+      end
+    end
+
+    class RefreshSessionRequest < ClientRequest
+      def self.new_request(payload, nonce)
+        ClientRequest.new_request(payload, nonce)
+      end
+
+      def self.parse(message)
+        data = JSON.parse(message, symbolize_names: true)
+        payload_data = data[:payload]
+
+        access_obj = ClientAccess.new(nonce: payload_data[:access][:nonce])
+        request_access = RefreshSessionRequestAccess.new(
+          public_key: payload_data[:request][:access][:publicKey],
+          rotation_hash: payload_data[:request][:access][:rotationHash],
+          token: payload_data[:request][:access][:token]
+        )
+        request = RefreshSessionRequestPayload.new(access: request_access)
+
+        new(
+          payload: ClientPayload.new(access: access_obj, request: request),
+          signature: data[:signature]
+        )
+      end
+    end
+
+    # Refresh Session Response
+    class RefreshSessionResponseAccess
+      attr_accessor :token
+
+      def initialize(token:)
+        @token = token
+      end
+
+      def to_h
+        { token: @token }
+      end
+
+      def to_json(*)
+        to_h.to_json(*)
+      end
+    end
+
+    class RefreshSessionResponsePayload
+      attr_accessor :access
+
+      def initialize(access:)
+        @access = access
+      end
+
+      def to_h
+        { access: @access.to_h }
+      end
+
+      def to_json(*)
+        to_h.to_json(*)
+      end
+    end
+
+    class RefreshSessionResponse < ServerResponse
+      def self.new_response(payload, server_identity, nonce)
+        ServerResponse.new_response(payload, server_identity, nonce)
+      end
+
+      def self.parse(message)
+        data = JSON.parse(message, symbolize_names: true)
+        payload_data = data[:payload]
+
+        access_obj = ServerAccess.new(
+          nonce: payload_data[:access][:nonce],
+          server_identity: payload_data[:access][:serverIdentity]
+        )
+        response_access = RefreshSessionResponseAccess.new(
+          token: payload_data[:response][:access][:token]
+        )
+        response = RefreshSessionResponsePayload.new(access: response_access)
+
+        new(
+          payload: ServerPayload.new(access: access_obj, response: response),
+          signature: data[:signature]
         )
       end
     end

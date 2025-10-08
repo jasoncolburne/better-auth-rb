@@ -1,19 +1,13 @@
 require 'spec_helper'
 require_relative '../lib/better_auth/api/better_auth'
-require_relative '../lib/better_auth/api/creation'
-require_relative '../lib/better_auth/api/authentication'
-require_relative '../lib/better_auth/api/linking'
-require_relative '../lib/better_auth/api/recovery'
-require_relative '../lib/better_auth/api/refresh'
-require_relative '../lib/better_auth/api/rotation'
 require_relative '../lib/better_auth/api/access'
+require_relative '../lib/better_auth/api/account'
+require_relative '../lib/better_auth/api/device'
+require_relative '../lib/better_auth/api/session'
 require_relative '../lib/better_auth/messages/access'
-require_relative '../lib/better_auth/messages/authentication'
-require_relative '../lib/better_auth/messages/creation'
-require_relative '../lib/better_auth/messages/linking'
-require_relative '../lib/better_auth/messages/recovery'
-require_relative '../lib/better_auth/messages/refresh'
-require_relative '../lib/better_auth/messages/rotation'
+require_relative '../lib/better_auth/messages/account'
+require_relative '../lib/better_auth/messages/device'
+require_relative '../lib/better_auth/messages/session'
 require_relative '../examples/crypto/blake3'
 require_relative '../examples/crypto/nonce'
 require_relative '../examples/crypto/secp256r1'
@@ -197,9 +191,9 @@ RSpec.describe 'BetterAuth API' do
     nonce = noncer.generate128
     rotation_hash = hasher.sum(next_next_authentication_public_key.bytes)
 
-    rotate_request = BetterAuth::Messages::RotateAuthenticationKeyRequest.new_request(
-      BetterAuth::Messages::RotateAuthenticationKeyRequestPayload.new(
-        authentication: BetterAuth::Messages::RotateAuthenticationKeyRequestAuthentication.new(
+    rotate_request = BetterAuth::Messages::RotateDeviceRequest.new_request(
+      BetterAuth::Messages::RotateDeviceRequestPayload.new(
+        authentication: BetterAuth::Messages::RotateDeviceRequestAuthentication.new(
           device: device,
           identity: identity,
           public_key: next_authentication_public_key,
@@ -213,9 +207,9 @@ RSpec.describe 'BetterAuth API' do
 
     message = rotate_request.serialize
 
-    reply = ba.rotate_authentication_key(message)
+    reply = ba.rotate_device(message)
 
-    rotate_response = BetterAuth::Messages::RotateAuthenticationKeyResponse.parse(reply)
+    rotate_response = BetterAuth::Messages::RotateDeviceResponse.parse(reply)
 
     rotate_response.verify(server_response_key.verifier, server_response_public_key)
 
@@ -224,9 +218,9 @@ RSpec.describe 'BetterAuth API' do
     # Start authentication
     nonce = noncer.generate128
 
-    start_authentication_request = BetterAuth::Messages::StartAuthenticationRequest.new_request(
-      BetterAuth::Messages::StartAuthenticationRequestPayload.new(
-        authentication: BetterAuth::Messages::StartAuthenticationRequestAuthentication.new(
+    start_authentication_request = BetterAuth::Messages::RequestSessionRequest.new_request(
+      BetterAuth::Messages::RequestSessionRequestPayload.new(
+        authentication: BetterAuth::Messages::RequestSessionRequestAuthentication.new(
           identity: identity
         )
       ),
@@ -235,9 +229,9 @@ RSpec.describe 'BetterAuth API' do
 
     message = start_authentication_request.serialize
 
-    reply = ba.start_authentication(message)
+    reply = ba.request_session(message)
 
-    start_authentication_response = BetterAuth::Messages::StartAuthenticationResponse.parse(reply)
+    start_authentication_response = BetterAuth::Messages::RequestSessionResponse.parse(reply)
 
     start_authentication_response.verify(server_response_key.verifier, server_response_public_key)
 
@@ -256,13 +250,13 @@ RSpec.describe 'BetterAuth API' do
 
     rotation_hash = hasher.sum(client_next_access_public_key.bytes)
 
-    finish_authentication_request = BetterAuth::Messages::FinishAuthenticationRequest.new_request(
-      BetterAuth::Messages::FinishAuthenticationRequestPayload.new(
-        access: BetterAuth::Messages::FinishAuthenticationRequestAccess.new(
+    finish_authentication_request = BetterAuth::Messages::CreateSessionRequest.new_request(
+      BetterAuth::Messages::CreateSessionRequestPayload.new(
+        access: BetterAuth::Messages::CreateSessionRequestAccess.new(
           public_key: client_access_public_key,
           rotation_hash: rotation_hash
         ),
-        authentication: BetterAuth::Messages::FinishAuthenticationRequestAuthentication.new(
+        authentication: BetterAuth::Messages::CreateSessionRequestAuthentication.new(
           device: device,
           nonce: start_authentication_response.payload.response.authentication.nonce
         )
@@ -276,9 +270,9 @@ RSpec.describe 'BetterAuth API' do
 
     attributes = MockAttributes.new('admin' => %w[read write])
 
-    reply = ba.finish_authentication(message, attributes)
+    reply = ba.create_session(message, attributes)
 
-    finish_authentication_response = BetterAuth::Messages::FinishAuthenticationResponse.parse(reply)
+    finish_authentication_response = BetterAuth::Messages::CreateSessionResponse.parse(reply)
 
     finish_authentication_response.verify(server_response_key.verifier, server_response_public_key)
 
@@ -288,9 +282,9 @@ RSpec.describe 'BetterAuth API' do
     nonce = noncer.generate128
     rotation_hash = hasher.sum(client_next_next_access_public_key.bytes)
 
-    refresh_access_token_request = BetterAuth::Messages::RefreshAccessTokenRequest.new_request(
-      BetterAuth::Messages::RefreshAccessTokenRequestPayload.new(
-        access: BetterAuth::Messages::RefreshAccessTokenRequestAccess.new(
+    refresh_access_token_request = BetterAuth::Messages::RefreshSessionRequest.new_request(
+      BetterAuth::Messages::RefreshSessionRequestPayload.new(
+        access: BetterAuth::Messages::RefreshSessionRequestAccess.new(
           public_key: client_next_access_public_key,
           rotation_hash: rotation_hash,
           token: finish_authentication_response.payload.response.access.token
@@ -303,9 +297,9 @@ RSpec.describe 'BetterAuth API' do
 
     message = refresh_access_token_request.serialize
 
-    reply = ba.refresh_access_token(message)
+    reply = ba.refresh_session(message)
 
-    refresh_access_token_response = BetterAuth::Messages::RefreshAccessTokenResponse.parse(reply)
+    refresh_access_token_response = BetterAuth::Messages::RefreshSessionResponse.parse(reply)
 
     refresh_access_token_response.verify(server_response_key.verifier, server_response_public_key)
 

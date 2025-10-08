@@ -3,14 +3,15 @@ require_relative 'common'
 
 module BetterAuth
   module Messages
-    # Link Container
-    class LinkContainerAuthentication
-      attr_accessor :device, :identity, :public_key, :rotation_hash
+    # Create Account Request
+    class CreateAccountRequestAuthentication
+      attr_accessor :device, :identity, :public_key, :recovery_hash, :rotation_hash
 
-      def initialize(device:, identity:, public_key:, rotation_hash:)
+      def initialize(device:, identity:, public_key:, recovery_hash:, rotation_hash:)
         @device = device
         @identity = identity
         @public_key = public_key
+        @recovery_hash = recovery_hash
         @rotation_hash = rotation_hash
       end
 
@@ -19,6 +20,7 @@ module BetterAuth
           device: @device,
           identity: @identity,
           publicKey: @public_key,
+          recoveryHash: @recovery_hash,
           rotationHash: @rotation_hash
         }
       end
@@ -28,7 +30,7 @@ module BetterAuth
       end
     end
 
-    class LinkContainerPayload
+    class CreateAccountRequestPayload
       attr_accessor :authentication
 
       def initialize(authentication:)
@@ -44,71 +46,7 @@ module BetterAuth
       end
     end
 
-    class LinkContainer < SignableMessage
-      def self.new_container(payload, signature = nil)
-        new(payload: payload, signature: signature)
-      end
-
-      def self.parse(data)
-        auth_data = data[:payload][:authentication]
-        authentication = LinkContainerAuthentication.new(
-          device: auth_data[:device],
-          identity: auth_data[:identity],
-          public_key: auth_data[:publicKey],
-          rotation_hash: auth_data[:rotationHash]
-        )
-        payload = LinkContainerPayload.new(authentication: authentication)
-
-        new(payload: payload, signature: data[:signature])
-      end
-    end
-
-    # Link Device Request
-    class LinkDeviceRequestAuthentication
-      attr_accessor :device, :identity, :public_key, :rotation_hash
-
-      def initialize(device:, identity:, public_key:, rotation_hash:)
-        @device = device
-        @identity = identity
-        @public_key = public_key
-        @rotation_hash = rotation_hash
-      end
-
-      def to_h
-        {
-          device: @device,
-          identity: @identity,
-          publicKey: @public_key,
-          rotationHash: @rotation_hash
-        }
-      end
-
-      def to_json(*)
-        to_h.to_json(*)
-      end
-    end
-
-    class LinkDeviceRequestPayload
-      attr_accessor :authentication, :link
-
-      def initialize(authentication:, link:)
-        @authentication = authentication
-        @link = link
-      end
-
-      def to_h
-        {
-          authentication: @authentication.to_h,
-          link: JSON.parse(@link.serialize)
-        }
-      end
-
-      def to_json(*)
-        to_h.to_json(*)
-      end
-    end
-
-    class LinkDeviceRequest < ClientRequest
+    class CreateAccountRequest < ClientRequest
       def self.new_request(payload, nonce)
         ClientRequest.new_request(payload, nonce)
       end
@@ -119,14 +57,14 @@ module BetterAuth
 
         access = ClientAccess.new(nonce: payload_data[:access][:nonce])
         auth_data = payload_data[:request][:authentication]
-        authentication = LinkDeviceRequestAuthentication.new(
+        authentication = CreateAccountRequestAuthentication.new(
           device: auth_data[:device],
           identity: auth_data[:identity],
           public_key: auth_data[:publicKey],
+          recovery_hash: auth_data[:recoveryHash],
           rotation_hash: auth_data[:rotationHash]
         )
-        link = LinkContainer.parse(payload_data[:request][:link])
-        request = LinkDeviceRequestPayload.new(authentication: authentication, link: link)
+        request = CreateAccountRequestPayload.new(authentication: authentication)
 
         new(
           payload: ClientPayload.new(access: access, request: request),
@@ -135,8 +73,8 @@ module BetterAuth
       end
     end
 
-    # Link Device Response
-    class LinkDeviceResponsePayload
+    # Create Account Response
+    class CreateAccountResponsePayload
       def to_h
         {}
       end
@@ -146,7 +84,7 @@ module BetterAuth
       end
     end
 
-    class LinkDeviceResponse < ServerResponse
+    class CreateAccountResponse < ServerResponse
       def self.new_response(payload, server_identity, nonce)
         ServerResponse.new_response(payload, server_identity, nonce)
       end
@@ -159,7 +97,7 @@ module BetterAuth
           nonce: payload_data[:access][:nonce],
           server_identity: payload_data[:access][:serverIdentity]
         )
-        response = LinkDeviceResponsePayload.new
+        response = CreateAccountResponsePayload.new
 
         new(
           payload: ServerPayload.new(access: access, response: response),
@@ -168,14 +106,16 @@ module BetterAuth
       end
     end
 
-    # Unlink Device Request
-    class UnlinkDeviceRequestAuthentication
-      attr_accessor :device, :identity, :public_key, :rotation_hash
+    # Recover Account Request
+    class RecoverAccountRequestAuthentication
+      attr_accessor :device, :identity, :public_key, :recovery_hash, :recovery_key, :rotation_hash
 
-      def initialize(device:, identity:, public_key:, rotation_hash:)
+      def initialize(device:, identity:, public_key:, recovery_hash:, recovery_key:, rotation_hash:)
         @device = device
         @identity = identity
         @public_key = public_key
+        @recovery_hash = recovery_hash
+        @recovery_key = recovery_key
         @rotation_hash = rotation_hash
       end
 
@@ -184,6 +124,8 @@ module BetterAuth
           device: @device,
           identity: @identity,
           publicKey: @public_key,
+          recoveryHash: @recovery_hash,
+          recoveryKey: @recovery_key,
           rotationHash: @rotation_hash
         }
       end
@@ -193,35 +135,15 @@ module BetterAuth
       end
     end
 
-    class UnlinkDeviceRequestLink
-      attr_accessor :device
+    class RecoverAccountRequestPayload
+      attr_accessor :authentication
 
-      def initialize(device:)
-        @device = device
-      end
-
-      def to_h
-        { device: @device }
-      end
-
-      def to_json(*)
-        to_h.to_json(*)
-      end
-    end
-
-    class UnlinkDeviceRequestPayload
-      attr_accessor :authentication, :link
-
-      def initialize(authentication:, link:)
+      def initialize(authentication:)
         @authentication = authentication
-        @link = link
       end
 
       def to_h
-        {
-          authentication: @authentication.to_h,
-          link: @link.to_h
-        }
+        { authentication: @authentication.to_h }
       end
 
       def to_json(*)
@@ -229,7 +151,7 @@ module BetterAuth
       end
     end
 
-    class UnlinkDeviceRequest < ClientRequest
+    class RecoverAccountRequest < ClientRequest
       def self.new_request(payload, nonce)
         ClientRequest.new_request(payload, nonce)
       end
@@ -240,15 +162,15 @@ module BetterAuth
 
         access = ClientAccess.new(nonce: payload_data[:access][:nonce])
         auth_data = payload_data[:request][:authentication]
-        authentication = UnlinkDeviceRequestAuthentication.new(
+        authentication = RecoverAccountRequestAuthentication.new(
           device: auth_data[:device],
           identity: auth_data[:identity],
           public_key: auth_data[:publicKey],
+          recovery_hash: auth_data[:recoveryHash],
+          recovery_key: auth_data[:recoveryKey],
           rotation_hash: auth_data[:rotationHash]
         )
-        link_data = payload_data[:request][:link]
-        link = UnlinkDeviceRequestLink.new(device: link_data[:device])
-        request = UnlinkDeviceRequestPayload.new(authentication: authentication, link: link)
+        request = RecoverAccountRequestPayload.new(authentication: authentication)
 
         new(
           payload: ClientPayload.new(access: access, request: request),
@@ -257,8 +179,8 @@ module BetterAuth
       end
     end
 
-    # Unlink Device Response
-    class UnlinkDeviceResponsePayload
+    # Recover Account Response
+    class RecoverAccountResponsePayload
       def to_h
         {}
       end
@@ -268,7 +190,7 @@ module BetterAuth
       end
     end
 
-    class UnlinkDeviceResponse < ServerResponse
+    class RecoverAccountResponse < ServerResponse
       def self.new_response(payload, server_identity, nonce)
         ServerResponse.new_response(payload, server_identity, nonce)
       end
@@ -281,7 +203,7 @@ module BetterAuth
           nonce: payload_data[:access][:nonce],
           server_identity: payload_data[:access][:serverIdentity]
         )
-        response = UnlinkDeviceResponsePayload.new
+        response = RecoverAccountResponsePayload.new
 
         new(
           payload: ServerPayload.new(access: access, response: response),

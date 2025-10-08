@@ -1,13 +1,13 @@
 require 'sinatra'
 require 'json'
 require_relative '../lib/better_auth/api/better_auth'
-require_relative '../lib/better_auth/api/creation'
-require_relative '../lib/better_auth/api/authentication'
-require_relative '../lib/better_auth/api/linking'
-require_relative '../lib/better_auth/api/recovery'
-require_relative '../lib/better_auth/api/refresh'
-require_relative '../lib/better_auth/api/rotation'
 require_relative '../lib/better_auth/api/access'
+require_relative '../lib/better_auth/api/account'
+require_relative '../lib/better_auth/api/device'
+require_relative '../lib/better_auth/api/session'
+require_relative '../lib/better_auth/messages/account'
+require_relative '../lib/better_auth/messages/device'
+require_relative '../lib/better_auth/messages/session'
 require_relative 'crypto/blake3'
 require_relative 'crypto/nonce'
 require_relative 'crypto/secp256r1'
@@ -137,12 +137,12 @@ module Examples
     end
 
     def start_authentication(message)
-      wrap_response(message) { |msg| @ba.start_authentication(msg) }
+      wrap_response(message) { |msg| @ba.request_session(msg) }
     end
 
     def finish_authentication(message)
       wrap_response(message) do |msg|
-        @ba.finish_authentication(
+        @ba.create_session(
           msg,
           MockTokenAttributes.new('admin' => %w[read write])
         )
@@ -150,11 +150,11 @@ module Examples
     end
 
     def rotate_authentication(message)
-      wrap_response(message) { |msg| @ba.rotate_authentication_key(msg) }
+      wrap_response(message) { |msg| @ba.rotate_device(msg) }
     end
 
     def rotate_access(message)
-      wrap_response(message) { |msg| @ba.refresh_access_token(msg) }
+      wrap_response(message) { |msg| @ba.refresh_session(msg) }
     end
 
     def response_key(message)
