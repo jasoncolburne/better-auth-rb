@@ -1,5 +1,6 @@
 require 'spec_helper'
 require_relative '../lib/better_auth/messages/access'
+require_relative '../examples/crypto/secp256r1'
 require_relative '../examples/encoding/token_encoder'
 
 RSpec.describe 'Token parsing' do
@@ -23,10 +24,28 @@ RSpec.describe 'Token parsing' do
     end
   end
 
-  it 'can parse tokens' do
+  it 'can encode and decode tokens' do
     token_encoder = Examples::Encoding::TokenEncoder.new
 
-    token_string = '0IAGTf0y29Ra-8cjCnXS8NlImAi4_KZfaxgr_5iAux1CLoOZ7d5tvFktxb8Xc6pU2pYQkMw0V75fwP537N9dToIyH4sIAAAAAAACA22PXY-iMBSG_wvX203rUBHuOgIDasQ1jC5uNobaKkU-TFtAZ-J_nzoXu8nOnsuT93k_3i3FZc9lzHijhb5ZnoUIiUl_mNkp0isAWHpgCzKMWSaghJvE309VxifT6_no3Nh1G1jfLMZ7ceCGDYJhvIoDqXySVCAcPdfc2VFYlHG-TabDa0leu1NE56Byc8OJv6lB0taqqFx5jGadHfUiTU9OHYrFXp17FmKIdpfMZk80ileGvHS0Eoc5_1P4jVIM1qW92Qb-7keC6-HlxZH-Yjm-Coxilm1Q2-AV3dPO4LLVuRZtE-WqeISHIZDEGWe125Z-BnVHxc9NuQZk3c-XziyS5-2ybt6OpyJ51Faq44xoQ47gCAMEAZykaORh17PR9wnG8PN2RsuvFyFv_yifPGR_UUp-lFwVwRfATSH8n3WutRS001xZ3rt14bI2xcwo9XxbtxV_PHNWi8byfhnznBlkkEJz6_f9fv8A44o2TvkBAAA'
+    temp_token_string = '0IAGTf0y29Ra-8cjCnXS8NlImAi4_KZfaxgr_5iAux1CLoOZ7d5tvFktxb8Xc6pU2pYQkMw0V75fwP537N9dToIyH4sIAAAAAAACA22PXY-iMBSG_wvX203rUBHuOgIDasQ1jC5uNobaKkU-TFtAZ-J_nzoXu8nOnsuT93k_3i3FZc9lzHijhb5ZnoUIiUl_mNkp0isAWHpgCzKMWSaghJvE309VxifT6_no3Nh1G1jfLMZ7ceCGDYJhvIoDqXySVCAcPdfc2VFYlHG-TabDa0leu1NE56Byc8OJv6lB0taqqFx5jGadHfUiTU9OHYrFXp17FmKIdpfMZk80ileGvHS0Eoc5_1P4jVIM1qW92Qb-7keC6-HlxZH-Yjm-Coxilm1Q2-AV3dPO4LLVuRZtE-WqeISHIZDEGWe125Z-BnVHxc9NuQZk3c-XziyS5-2ybt6OpyJ51Faq44xoQ47gCAMEAZykaORh17PR9wnG8PN2RsuvFyFv_yifPGR_UUp-lFwVwRfATSH8n3WutRS001xZ3rt14bI2xcwo9XxbtxV_PHNWi8byfhnznBlkkEJz6_f9fv8A44o2TvkBAAA'
+
+    temp_key = Examples::Crypto::Secp256r1.new
+
+    temp_token = BetterAuth::Messages::AccessToken.parse(temp_token_string, token_encoder)
+    new_token = BetterAuth::Messages::AccessToken.new(
+      server_identity: temp_token.server_identity,
+      device: temp_token.device,
+      identity: temp_token.identity,
+      public_key: temp_token.public_key,
+      rotation_hash: temp_token.rotation_hash,
+      issued_at: temp_token.issued_at,
+      expiry: temp_token.expiry,
+      refresh_expiry: temp_token.refresh_expiry,
+      attributes: temp_token.attributes
+    )
+
+    new_token.sign(temp_key)
+    token_string = new_token.serialize_token(token_encoder)
 
     token = BetterAuth::Messages::AccessToken.parse(token_string, token_encoder)
 
