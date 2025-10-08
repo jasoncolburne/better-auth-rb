@@ -103,15 +103,15 @@ module BetterAuth
 
     # Helper classes for server responses
     class ServerAccess
-      attr_accessor :nonce, :response_key_hash
+      attr_accessor :nonce, :server_identity
 
-      def initialize(nonce:, response_key_hash:)
+      def initialize(nonce:, server_identity:)
         @nonce = nonce
-        @response_key_hash = response_key_hash
+        @server_identity = server_identity
       end
 
       def to_h
-        { nonce: @nonce, responseKeyHash: @response_key_hash }
+        { nonce: @nonce, serverIdentity: @server_identity }
       end
 
       def to_json(*)
@@ -137,10 +137,10 @@ module BetterAuth
     end
 
     class ServerResponse < SignableMessage
-      def self.new_response(response_payload, response_key_hash, nonce)
+      def self.new_response(response_payload, server_identity, nonce)
         new(
           payload: ServerPayload.new(
-            access: ServerAccess.new(nonce: nonce, response_key_hash: response_key_hash),
+            access: ServerAccess.new(nonce: nonce, server_identity: server_identity),
             response: response_payload
           )
         )
@@ -152,7 +152,7 @@ module BetterAuth
 
         access = ServerAccess.new(
           nonce: payload_data[:access][:nonce],
-          response_key_hash: payload_data[:access][:responseKeyHash]
+          server_identity: payload_data[:access][:serverIdentity]
         )
         response = parse_response_payload(payload_data[:response])
 

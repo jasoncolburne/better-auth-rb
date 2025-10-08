@@ -115,7 +115,7 @@ module BetterAuth
         @payload = ServerPayload.new(
           access: ServerAccess.new(
             nonce: access_data[:nonce],
-            response_key_hash: access_data[:responseKeyHash]
+            server_identity: access_data[:serverIdentity]
           ),
           response: StartAuthenticationResponsePayload.from_hash(response_data)
         )
@@ -256,7 +256,7 @@ module BetterAuth
         @payload = ServerPayload.new(
           access: ServerAccess.new(
             nonce: access_data[:nonce],
-            response_key_hash: access_data[:responseKeyHash]
+            server_identity: access_data[:serverIdentity]
           ),
           response: FinishAuthenticationResponsePayload.from_hash(response_data)
         )

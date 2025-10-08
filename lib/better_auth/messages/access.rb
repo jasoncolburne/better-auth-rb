@@ -5,10 +5,13 @@ module BetterAuth
   module Messages
     # AccessToken class - represents an access token with signature
     class AccessToken
-      attr_accessor :identity, :public_key, :rotation_hash, :issued_at, :expiry, :refresh_expiry, :attributes
+      attr_accessor :server_identity, :identity, :public_key, :rotation_hash, :issued_at, :expiry, :refresh_expiry,
+                    :attributes
       attr_reader :signature
 
-      def initialize(identity:, public_key:, rotation_hash:, issued_at:, expiry:, refresh_expiry:, attributes:)
+      def initialize(server_identity:, identity:, public_key:, rotation_hash:, issued_at:, expiry:, refresh_expiry:,
+                     attributes:)
+        @server_identity = server_identity
         @identity = identity
         @public_key = public_key
         @rotation_hash = rotation_hash
@@ -19,14 +22,16 @@ module BetterAuth
         @signature = nil
       end
 
-      def self.parse(message, public_key_length, token_encoder)
-        signature = message[0...public_key_length]
-        rest = message[public_key_length..]
+      def self.parse(message, token_encoder)
+        signature_length = token_encoder.signature_length(message)
+        signature = message[0...signature_length]
+        rest = message[signature_length..]
 
         token_string = token_encoder.decode(rest)
         data = JSON.parse(token_string, symbolize_names: true)
 
         token = new(
+          server_identity: data[:serverIdentity],
           identity: data[:identity],
           public_key: data[:publicKey],
           rotation_hash: data[:rotationHash],
@@ -50,6 +55,7 @@ module BetterAuth
       def compose_payload
         attrs = @attributes.respond_to?(:to_h) ? @attributes.to_h : @attributes
         {
+          serverIdentity: @server_identity,
           identity: @identity,
           publicKey: @public_key,
           rotationHash: @rotation_hash,
@@ -150,15 +156,14 @@ module BetterAuth
         )
       end
 
-      def verify_access(nonce_store, verifier, token_verifier, server_access_public_key, token_encoder, timestamper,
-                        _attributes)
+      def verify_access(nonce_store, verifier, access_key_store, token_encoder, timestamper, _attributes)
         access_token = AccessToken.parse(
           @payload.access.token,
-          token_verifier.signature_length,
           token_encoder
         )
 
-        access_token.verify_token(token_verifier, server_access_public_key, timestamper)
+        server_access_public_key = access_key_store.get(access_token.server_identity)
+        access_token.verify_token(server_access_public_key.verifier, server_access_public_key.public, timestamper)
 
         composed_payload = compose_payload
         verifier.verify(@signature, access_token.public_key, composed_payload.bytes)

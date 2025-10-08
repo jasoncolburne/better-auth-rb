@@ -28,11 +28,11 @@ module BetterAuth
           true
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::RecoverAccountResponse.new_response(
           Messages::RecoverAccountResponsePayload.new,
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 

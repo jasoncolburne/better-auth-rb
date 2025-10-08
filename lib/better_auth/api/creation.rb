@@ -35,11 +35,11 @@ module BetterAuth
           false
         )
 
-        response_key_hash_value = response_key_hash
+        server_identity = @crypto.key_pair.response.identity
 
         response = Messages::CreateAccountResponse.new_response(
           Messages::CreateAccountResponsePayload.new,
-          response_key_hash_value,
+          server_identity,
           request.payload.access.nonce
         )
 

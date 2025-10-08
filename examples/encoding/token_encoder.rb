@@ -24,6 +24,14 @@ module Examples
 
         result
       end
+
+      def signature_length(token)
+        throw 'token too short' if token.length < 88
+        throw 'invalid token prefix' unless token[..1] == '0I'
+
+        # For secp256r1 signatures, the length is always 88 characters
+        88
+      end
     end
   end
 end

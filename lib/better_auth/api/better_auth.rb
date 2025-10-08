@@ -17,11 +17,6 @@ module BetterAuth
         @expiry = expiry
         @store = store
       end
-
-      def response_key_hash
-        response_key = @crypto.key_pair.response.public
-        @crypto.hasher.sum(response_key.bytes)
-      end
     end
 
     class CryptoContainer

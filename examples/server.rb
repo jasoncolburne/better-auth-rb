@@ -18,6 +18,7 @@ require_relative 'storage/authentication_key'
 require_relative 'storage/authentication_nonce'
 require_relative 'storage/recovery_hash'
 require_relative 'storage/timelock'
+require_relative 'storage/verification_key_store'
 
 module Examples
   class MockTokenAttributes
@@ -93,9 +94,11 @@ module Examples
         )
       )
 
+      @access_key_store = Examples::Storage::VerificationKeyStore.new
+      @access_key_store.add(server_access_key.identity, server_access_key)
+
       @av = BetterAuth::API::AccessVerifier.new(
         crypto: BetterAuth::API::VerifierCryptoContainer.new(
-          public_key: server_access_key,
           verifier: verifier
         ),
         encoding: BetterAuth::API::VerifierEncodingContainer.new(
@@ -103,7 +106,8 @@ module Examples
           timestamper: timestamper
         ),
         store: BetterAuth::API::VerifierStoreContainer.new(
-          access_nonce: access_nonce_store
+          access_nonce: access_nonce_store,
+          access_key_store: @access_key_store
         )
       )
     end
@@ -162,9 +166,7 @@ module Examples
 
       request_obj = BetterAuth::Messages::AccessRequest.parse(message)
 
-      response_public_key = @server_response_key.public
-      hasher = Crypto::Blake3.new
-      response_key_hash = hasher.sum(response_public_key.bytes)
+      server_identity = @server_response_key.identity
 
       nonce = bad_nonce ? '0A0123456789' : request_obj.payload.access.nonce
 
@@ -175,7 +177,7 @@ module Examples
 
       response = BetterAuth::Messages::ServerResponse.new_response(
         response_payload,
-        response_key_hash,
+        server_identity,
         nonce
       )
 
