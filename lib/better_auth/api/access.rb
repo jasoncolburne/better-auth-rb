@@ -15,7 +15,7 @@ module BetterAuth
       def verify(message, attributes)
         request = Messages::AccessRequest.parse(message)
 
-        identity, attributes = request.verify_access(
+        token = request.verify_access(
           @store.access_nonce,
           @crypto.verifier,
           @store.access_key_store,
@@ -24,7 +24,7 @@ module BetterAuth
           attributes
         )
 
-        [identity, attributes]
+        [request.payload.request, token]
       end
     end
 

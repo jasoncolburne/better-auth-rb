@@ -51,6 +51,7 @@ module BetterAuth
 
         access_token = Messages::AccessToken.new(
           server_identity: @crypto.key_pair.access.identity,
+          device: request.payload.request.authentication.device,
           identity: identity,
           public_key: request.payload.request.access.public_key,
           rotation_hash: request.payload.request.access.rotation_hash,
@@ -113,6 +114,7 @@ module BetterAuth
 
         access_token = Messages::AccessToken.new(
           server_identity: @crypto.key_pair.access.identity,
+          device: token.device,
           identity: token.identity,
           public_key: request.payload.request.access.public_key,
           rotation_hash: request.payload.request.access.rotation_hash,

@@ -5,13 +5,14 @@ module BetterAuth
   module Messages
     # AccessToken class - represents an access token with signature
     class AccessToken
-      attr_accessor :server_identity, :identity, :public_key, :rotation_hash, :issued_at, :expiry, :refresh_expiry,
-                    :attributes
+      attr_accessor :server_identity, :device, :identity, :public_key, :rotation_hash, :issued_at, :expiry,
+                    :refresh_expiry, :attributes
       attr_reader :signature
 
-      def initialize(server_identity:, identity:, public_key:, rotation_hash:, issued_at:, expiry:, refresh_expiry:,
-                     attributes:)
+      def initialize(server_identity:, device:, identity:, public_key:, rotation_hash:, issued_at:, expiry:,
+                     refresh_expiry:, attributes:)
         @server_identity = server_identity
+        @device = device
         @identity = identity
         @public_key = public_key
         @rotation_hash = rotation_hash
@@ -32,6 +33,7 @@ module BetterAuth
 
         token = new(
           server_identity: data[:serverIdentity],
+          device: data[:device],
           identity: data[:identity],
           public_key: data[:publicKey],
           rotation_hash: data[:rotationHash],
@@ -56,6 +58,7 @@ module BetterAuth
         attrs = @attributes.respond_to?(:to_h) ? @attributes.to_h : @attributes
         {
           serverIdentity: @server_identity,
+          device: @device,
           identity: @identity,
           publicKey: @public_key,
           rotationHash: @rotation_hash,
@@ -177,7 +180,7 @@ module BetterAuth
 
         nonce_store.reserve(@payload.access.nonce)
 
-        [access_token.identity, access_token.attributes]
+        access_token
       end
     end
   end

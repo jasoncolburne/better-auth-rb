@@ -319,10 +319,12 @@ RSpec.describe 'BetterAuth API' do
 
     message = access_request.serialize
 
-    verified_identity, verified_attributes = av.verify(message, MockAttributes.new)
+    request, token = av.verify(message, MockAttributes.new)
 
-    expect(verified_identity.casecmp?(identity)).to be true
-    expect(verified_attributes[:permissionsByRole][:admin]).to eq(attributes.permissions_by_role['admin'])
+    expect(request).not_to be_nil
+    expect(token).not_to be_nil
+    expect(token.identity.casecmp?(identity)).to be true
+    expect(token.attributes[:permissionsByRole][:admin]).to eq(attributes.permissions_by_role['admin'])
 
     # Recover account
     recovered_authentication_key = Examples::Crypto::Secp256r1.new
