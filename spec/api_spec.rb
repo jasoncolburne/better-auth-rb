@@ -191,7 +191,7 @@ RSpec.describe 'BetterAuth API' do
     nonce = noncer.generate128
     rotation_hash = hasher.sum(next_next_authentication_public_key.bytes)
 
-    rotate_request = BetterAuth::Messages::RotateDeviceRequest.new_request(
+    rotate_device_request = BetterAuth::Messages::RotateDeviceRequest.new_request(
       BetterAuth::Messages::RotateDeviceRequestPayload.new(
         authentication: BetterAuth::Messages::RotateDeviceRequestAuthentication.new(
           device: device,
@@ -203,22 +203,22 @@ RSpec.describe 'BetterAuth API' do
       nonce
     )
 
-    rotate_request.sign(next_authentication_key)
+    rotate_device_request.sign(next_authentication_key)
 
-    message = rotate_request.serialize
+    message = rotate_device_request.serialize
 
     reply = ba.rotate_device(message)
 
-    rotate_response = BetterAuth::Messages::RotateDeviceResponse.parse(reply)
+    rotate_device_response = BetterAuth::Messages::RotateDeviceResponse.parse(reply)
 
-    rotate_response.verify(server_response_key.verifier, server_response_public_key)
+    rotate_device_response.verify(server_response_key.verifier, server_response_public_key)
 
-    expect(nonce.casecmp?(rotate_response.payload.access.nonce)).to be true
+    expect(nonce.casecmp?(rotate_device_response.payload.access.nonce)).to be true
 
     # Start authentication
     nonce = noncer.generate128
 
-    start_authentication_request = BetterAuth::Messages::RequestSessionRequest.new_request(
+    request_session_request = BetterAuth::Messages::RequestSessionRequest.new_request(
       BetterAuth::Messages::RequestSessionRequestPayload.new(
         authentication: BetterAuth::Messages::RequestSessionRequestAuthentication.new(
           identity: identity
@@ -227,15 +227,15 @@ RSpec.describe 'BetterAuth API' do
       nonce
     )
 
-    message = start_authentication_request.serialize
+    message = request_session_request.serialize
 
     reply = ba.request_session(message)
 
-    start_authentication_response = BetterAuth::Messages::RequestSessionResponse.parse(reply)
+    request_session_response = BetterAuth::Messages::RequestSessionResponse.parse(reply)
 
-    start_authentication_response.verify(server_response_key.verifier, server_response_public_key)
+    request_session_response.verify(server_response_key.verifier, server_response_public_key)
 
-    expect(nonce.casecmp?(start_authentication_response.payload.access.nonce)).to be true
+    expect(nonce.casecmp?(request_session_response.payload.access.nonce)).to be true
 
     # Finish authentication
     nonce = noncer.generate128
@@ -250,7 +250,7 @@ RSpec.describe 'BetterAuth API' do
 
     rotation_hash = hasher.sum(client_next_access_public_key.bytes)
 
-    finish_authentication_request = BetterAuth::Messages::CreateSessionRequest.new_request(
+    create_session_request = BetterAuth::Messages::CreateSessionRequest.new_request(
       BetterAuth::Messages::CreateSessionRequestPayload.new(
         access: BetterAuth::Messages::CreateSessionRequestAccess.new(
           public_key: client_access_public_key,
@@ -258,52 +258,52 @@ RSpec.describe 'BetterAuth API' do
         ),
         authentication: BetterAuth::Messages::CreateSessionRequestAuthentication.new(
           device: device,
-          nonce: start_authentication_response.payload.response.authentication.nonce
+          nonce: request_session_response.payload.response.authentication.nonce
         )
       ),
       nonce
     )
 
-    finish_authentication_request.sign(next_authentication_key)
+    create_session_request.sign(next_authentication_key)
 
-    message = finish_authentication_request.serialize
+    message = create_session_request.serialize
 
     attributes = MockAttributes.new('admin' => %w[read write])
 
     reply = ba.create_session(message, attributes)
 
-    finish_authentication_response = BetterAuth::Messages::CreateSessionResponse.parse(reply)
+    create_session_response = BetterAuth::Messages::CreateSessionResponse.parse(reply)
 
-    finish_authentication_response.verify(server_response_key.verifier, server_response_public_key)
+    create_session_response.verify(server_response_key.verifier, server_response_public_key)
 
-    expect(nonce.casecmp?(finish_authentication_response.payload.access.nonce)).to be true
+    expect(nonce.casecmp?(create_session_response.payload.access.nonce)).to be true
 
     # Refresh access token
     nonce = noncer.generate128
     rotation_hash = hasher.sum(client_next_next_access_public_key.bytes)
 
-    refresh_access_token_request = BetterAuth::Messages::RefreshSessionRequest.new_request(
+    refresh_session_request = BetterAuth::Messages::RefreshSessionRequest.new_request(
       BetterAuth::Messages::RefreshSessionRequestPayload.new(
         access: BetterAuth::Messages::RefreshSessionRequestAccess.new(
           public_key: client_next_access_public_key,
           rotation_hash: rotation_hash,
-          token: finish_authentication_response.payload.response.access.token
+          token: create_session_response.payload.response.access.token
         )
       ),
       nonce
     )
 
-    refresh_access_token_request.sign(client_next_access_key)
+    refresh_session_request.sign(client_next_access_key)
 
-    message = refresh_access_token_request.serialize
+    message = refresh_session_request.serialize
 
     reply = ba.refresh_session(message)
 
-    refresh_access_token_response = BetterAuth::Messages::RefreshSessionResponse.parse(reply)
+    refresh_session_response = BetterAuth::Messages::RefreshSessionResponse.parse(reply)
 
-    refresh_access_token_response.verify(server_response_key.verifier, server_response_public_key)
+    refresh_session_response.verify(server_response_key.verifier, server_response_public_key)
 
-    expect(nonce.casecmp?(refresh_access_token_response.payload.access.nonce)).to be true
+    expect(nonce.casecmp?(refresh_session_response.payload.access.nonce)).to be true
 
     # Verify access
     nonce = noncer.generate128
@@ -311,7 +311,7 @@ RSpec.describe 'BetterAuth API' do
     access_request = BetterAuth::Messages::AccessRequest.new_request(
       { foo: 'bar', bar: 'foo' },
       timestamper,
-      refresh_access_token_response.payload.response.access.token,
+      refresh_session_response.payload.response.access.token,
       nonce
     )
 
@@ -339,7 +339,7 @@ RSpec.describe 'BetterAuth API' do
 
     nonce = noncer.generate128
 
-    recover_request = BetterAuth::Messages::RecoverAccountRequest.new_request(
+    recover_account_request = BetterAuth::Messages::RecoverAccountRequest.new_request(
       BetterAuth::Messages::RecoverAccountRequestPayload.new(
         authentication: BetterAuth::Messages::RecoverAccountRequestAuthentication.new(
           device: recovered_device,
@@ -353,9 +353,9 @@ RSpec.describe 'BetterAuth API' do
       nonce
     )
 
-    recover_request.sign(recovery_key)
+    recover_account_request.sign(recovery_key)
 
-    message = recover_request.serialize
+    message = recover_account_request.serialize
 
     reply = ba.recover_account(message)
 
