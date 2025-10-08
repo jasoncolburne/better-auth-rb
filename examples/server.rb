@@ -205,31 +205,31 @@ post '/account/create' do
   server.create(request.body.read)
 end
 
-post '/authenticate/start' do
-  server.start_authentication(request.body.read)
-end
-
-post '/authenticate/finish' do
-  server.finish_authentication(request.body.read)
-end
-
-post '/rotate/authentication' do
-  server.rotate_authentication(request.body.read)
-end
-
-post '/rotate/access' do
-  server.rotate_access(request.body.read)
-end
-
-post '/rotate/recover' do
+post '/account/recover' do
   server.recover(request.body.read)
 end
 
-post '/rotate/link' do
+post '/session/request' do
+  server.start_authentication(request.body.read)
+end
+
+post '/session/connect' do
+  server.finish_authentication(request.body.read)
+end
+
+post '/session/refresh' do
+  server.rotate_access(request.body.read)
+end
+
+post '/device/rotate' do
+  server.rotate_authentication(request.body.read)
+end
+
+post '/device/link' do
   server.link(request.body.read)
 end
 
-post '/rotate/unlink' do
+post '/device/unlink' do
   server.unlink(request.body.read)
 end
 
