@@ -213,7 +213,7 @@ post '/session/request' do
   server.start_authentication(request.body.read)
 end
 
-post '/session/connect' do
+post '/session/create' do
   server.finish_authentication(request.body.read)
 end
 
