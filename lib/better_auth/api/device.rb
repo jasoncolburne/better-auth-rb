@@ -4,6 +4,7 @@ require_relative '../messages/device'
 module BetterAuth
   module API
     class BetterAuthServer
+      # rubocop:disable Metrics/AbcSize
       def link_device(message)
         request = Messages::LinkDeviceRequest.parse(message)
 
@@ -19,6 +20,13 @@ module BetterAuth
         unless link_container.payload.authentication.identity.casecmp?(request.payload.request.authentication.identity)
           raise 'mismatched identities'
         end
+
+        device = @crypto.hasher.sum(
+          (link_container.payload.authentication.public_key +
+           link_container.payload.authentication.rotation_hash).bytes
+        )
+
+        raise 'bad device derivation' unless device.casecmp?(link_container.payload.authentication.device)
 
         @store.authentication.key.rotate(
           request.payload.request.authentication.identity,
@@ -47,6 +55,7 @@ module BetterAuth
 
         response.serialize
       end
+      # rubocop:enable Metrics/AbcSize
 
       def unlink_device(message)
         request = Messages::UnlinkDeviceRequest.parse(message)

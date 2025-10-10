@@ -156,7 +156,7 @@ RSpec.describe 'BetterAuth API' do
     recovery_public_key = recovery_key.public
     recovery_hash = hasher.sum(recovery_public_key.bytes)
 
-    device = hasher.sum(current_key.bytes)
+    device = hasher.sum((current_key + rotation_hash).bytes)
     identity_seed = "#{current_key}#{rotation_hash}#{recovery_hash}"
     identity = hasher.sum(identity_seed.bytes)
 
@@ -335,8 +335,8 @@ RSpec.describe 'BetterAuth API' do
     recovered_next_authentication_public_key = recovered_next_authentication_key.public
     next_recovery_public_key = next_recovery_key.public
 
-    recovered_device = hasher.sum(recovered_authentication_public_key.bytes)
     rotation_hash = hasher.sum(recovered_next_authentication_public_key.bytes)
+    recovered_device = hasher.sum((recovered_authentication_public_key + rotation_hash).bytes)
     next_recovery_hash = hasher.sum(next_recovery_public_key.bytes)
 
     nonce = noncer.generate128
@@ -376,8 +376,8 @@ RSpec.describe 'BetterAuth API' do
     linked_next_authentication_public_key = linked_next_authentication_key.public
     recovered_next_next_authentication_public_key = recovered_next_next_authentication_key.public
 
-    linked_device = hasher.sum(linked_authentication_public_key.bytes)
     rotation_hash = hasher.sum(linked_next_authentication_public_key.bytes)
+    linked_device = hasher.sum((linked_authentication_public_key + rotation_hash).bytes)
 
     recovered_next_rotation_hash = hasher.sum(recovered_next_next_authentication_public_key.bytes)
 
