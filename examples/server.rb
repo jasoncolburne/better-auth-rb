@@ -128,6 +128,10 @@ module Examples
       wrap_response(message) { |msg| @ba.recover_account(msg) }
     end
 
+    def delete(message)
+      wrap_response(message) { |msg| @ba.delete_account(msg) }
+    end
+
     def link(message)
       wrap_response(message) { |msg| @ba.link_device(msg) }
     end
@@ -207,6 +211,10 @@ end
 
 post '/account/recover' do
   server.recover(request.body.read)
+end
+
+post '/account/delete' do
+  server.delete(request.body.read)
 end
 
 post '/session/request' do

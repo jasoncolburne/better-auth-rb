@@ -69,6 +69,14 @@ module Examples
 
         nil
       end
+
+      def delete_identity(identity)
+        raise 'account not found' unless @known_devices.key?(identity)
+
+        @known_devices.delete(identity)
+
+        nil
+      end
     end
   end
 end
