@@ -18,9 +18,12 @@ module BetterAuth
           request.payload.request.authentication.recovery_hash
         )
 
-        hash = @crypto.hasher.sum(request.payload.request.authentication.public_key.bytes)
+        device = @crypto.hasher.sum(
+          (request.payload.request.authentication.public_key +
+           request.payload.request.authentication.rotation_hash).bytes
+        )
 
-        raise 'device mismatch' unless hash.casecmp?(request.payload.request.authentication.device)
+        raise 'bad device derivation' unless device.casecmp?(request.payload.request.authentication.device)
 
         @store.recovery.hash.register(
           identity,
@@ -48,10 +51,18 @@ module BetterAuth
         response.serialize
       end
 
+      # rubocop:disable Metrics/AbcSize
       def recover_account(message)
         request = Messages::RecoverAccountRequest.parse(message)
 
         request.verify(@crypto.verifier, request.payload.request.authentication.recovery_key)
+
+        device = @crypto.hasher.sum(
+          (request.payload.request.authentication.public_key +
+           request.payload.request.authentication.rotation_hash).bytes
+        )
+
+        raise 'bad device derivation' unless device.casecmp?(request.payload.request.authentication.device)
 
         hash = @crypto.hasher.sum(request.payload.request.authentication.recovery_key.bytes)
         @store.recovery.hash.rotate(
@@ -84,6 +95,7 @@ module BetterAuth
 
         response.serialize
       end
+      # rubocop:enable Metrics/AbcSize
     end
   end
 end
