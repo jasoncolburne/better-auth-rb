@@ -96,6 +96,35 @@ module BetterAuth
         response.serialize
       end
       # rubocop:enable Metrics/AbcSize
+
+      def delete_account(message)
+        request = Messages::DeleteAccountRequest.parse(message)
+
+        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
+
+        @store.authentication.key.rotate(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.device,
+          request.payload.request.authentication.public_key,
+          request.payload.request.authentication.rotation_hash
+        )
+
+        @store.authentication.key.delete_identity(
+          request.payload.request.authentication.identity
+        )
+
+        server_identity = @crypto.key_pair.response.identity
+
+        response = Messages::DeleteAccountResponse.new_response(
+          Messages::DeleteAccountResponsePayload.new,
+          server_identity,
+          request.payload.access.nonce
+        )
+
+        response.sign(@crypto.key_pair.response)
+
+        response.serialize
+      end
     end
   end
 end

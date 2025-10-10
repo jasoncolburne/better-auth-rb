@@ -30,6 +30,10 @@ module BetterAuth
       def revoke_devices(identity)
         raise NotImplementedError
       end
+
+      def delete_identity(identity)
+        raise NotImplementedError
+      end
     end
   end
 end
