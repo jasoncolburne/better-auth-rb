@@ -420,6 +420,36 @@ RSpec.describe 'BetterAuth API' do
     link_device_response.verify(server_response_key.verifier, server_response_public_key)
 
     expect(nonce.casecmp?(link_device_response.payload.access.nonce)).to be true
+
+    linked_next_next_authentication_key = Examples::Crypto::Secp256r1.new
+    linked_next_next_authentication_public_key = linked_next_next_authentication_key.public
+    linked_next_rotation_hash = hasher.sum(linked_next_next_authentication_public_key.bytes)
+
+    nonce = noncer.generate128
+
+    delete_account_request = BetterAuth::Messages::DeleteAccountRequest.new_request(
+      BetterAuth::Messages::DeleteAccountRequestPayload.new(
+        authentication: BetterAuth::Messages::DeleteAccountRequestAuthentication.new(
+          device: linked_device,
+          identity: identity,
+          public_key: linked_next_authentication_public_key,
+          rotation_hash: linked_next_rotation_hash
+        )
+      ),
+      nonce
+    )
+
+    delete_account_request.sign(linked_next_authentication_key)
+
+    message = delete_account_request.serialize
+
+    reply = ba.delete_account(message)
+
+    delete_account_response = BetterAuth::Messages::DeleteAccountResponse.parse(reply)
+
+    delete_account_response.verify(server_response_key.verifier, server_response_public_key)
+
+    expect(nonce.casecmp?(delete_account_response.payload.access.nonce)).to be true
   end
 
   it 'completes the full authentication flow' do
