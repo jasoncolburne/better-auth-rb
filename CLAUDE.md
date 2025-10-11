@@ -55,10 +55,25 @@ lib/
         └── access.rb               # Access messages
 
 spec/                               # RSpec tests
-├── better_auth_spec.rb             # Main test suite
+├── api_spec.rb                     # Main API test suite
+├── token_spec.rb                   # Token tests
 └── spec_helper.rb                  # Test configuration
 
 examples/
+├── crypto/                         # Example crypto implementations
+│   ├── blake3.rb                   # BLAKE3 hasher
+│   ├── nonce.rb                    # Nonce generator
+│   └── secp256r1.rb                # SECP256R1 signing/verification
+├── encoding/                       # Example encoding implementations
+│   ├── identity_verifier.rb        # Identity verification
+│   ├── rfc3339nano.rb              # Timestamper
+│   └── token_encoder.rb            # Token encoding
+├── storage/                        # Example storage implementations
+│   ├── authentication_key.rb       # Authentication key storage
+│   ├── authentication_nonce.rb     # Nonce storage
+│   ├── recovery_hash.rb            # Recovery hash storage
+│   ├── timelock.rb                 # Timelock storage
+│   └── verification_key_store.rb   # Verification key storage
 └── server.rb                       # Example HTTP server
 ```
 
@@ -131,12 +146,13 @@ Server initialization uses a configuration hash:
 
 ## Testing
 
-### RSpec Tests (`spec/better_auth_spec.rb`)
+### RSpec Tests (`spec/api_spec.rb`, `spec/token_spec.rb`)
 Tests covering all protocol operations:
 - Account creation, recovery, deletion
 - Device linking/unlinking, rotation
 - Session request/creation/refresh
 - Access token generation and verification
+- Token encoding/decoding
 
 Run with: `bundle exec rspec`
 
@@ -144,7 +160,8 @@ Run with: `bundle exec rspec`
 ```bash
 bundle exec rspec              # Run all tests
 bundle exec rspec -fd          # Verbose format
-bundle exec rspec spec/better_auth_spec.rb  # Specific file
+bundle exec rspec spec/api_spec.rb  # Run API tests
+bundle exec rspec spec/token_spec.rb  # Run token tests
 ```
 
 ## Usage Patterns
@@ -208,7 +225,7 @@ See `examples/server.rb` for a complete HTTP server implementation using Sinatra
 - Routes to the BetterAuth::Server
 - Returns JSON responses
 
-Run with: `ruby examples/server.rb`
+Run with: `bundle exec ruby examples/server.rb`
 
 ## Development Workflow
 
@@ -232,7 +249,7 @@ bundle exec rubocop -a        # Auto-correct issues
 
 ### Running Example Server
 ```bash
-ruby examples/server.rb       # Start HTTP server
+bundle exec ruby examples/server.rb       # Start HTTP server
 ```
 
 ## Integration with Other Implementations
@@ -267,8 +284,12 @@ When making changes to this implementation:
 - `lib/better_auth/crypto_interfaces/` - Crypto interface modules
 - `lib/better_auth/encoding_interfaces/` - Encoding interface modules
 - `lib/better_auth/storage_interfaces/` - Storage interface modules
+- `examples/crypto/` - Example crypto implementations (BLAKE3, SECP256R1, nonce)
+- `examples/encoding/` - Example encoding implementations (timestamper, token encoder, identity verifier)
+- `examples/storage/` - Example storage implementations (authentication, recovery, timelock)
 - `examples/server.rb` - Example HTTP server
-- `spec/better_auth_spec.rb` - Comprehensive test suite
+- `spec/api_spec.rb` - Comprehensive API test suite
+- `spec/token_spec.rb` - Token encoding/decoding tests
 - `better_auth.gemspec` - Gem specification
 
 ## Ruby Version
