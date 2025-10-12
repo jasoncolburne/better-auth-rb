@@ -166,17 +166,15 @@ module Examples
     end
 
     def respond_to_access_request(message, bad_nonce)
-      @av.verify(message, MockTokenAttributes.new)
-
-      request_obj = BetterAuth::Messages::AccessRequest.parse(message)
+      request, _, nonce = @av.verify(message, MockTokenAttributes.new)
 
       server_identity = @server_response_key.identity
 
-      nonce = bad_nonce ? '0A0123456789' : request_obj.payload.access.nonce
+      nonce = '0A0123456789' if bad_nonce
 
       response_payload = {
-        wasFoo: request_obj.payload.request[:foo],
-        wasBar: request_obj.payload.request[:bar]
+        wasFoo: request[:foo],
+        wasBar: request[:bar]
       }
 
       response = BetterAuth::Messages::ServerResponse.new_response(
