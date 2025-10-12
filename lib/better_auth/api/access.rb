@@ -24,7 +24,7 @@ module BetterAuth
           attributes
         )
 
-        [request.payload.request, token]
+        [request.payload.request, token, request.payload.access.nonce]
       end
     end
 

@@ -319,8 +319,10 @@ RSpec.describe 'BetterAuth API' do
 
     message = access_request.serialize
 
-    request, token = av.verify(message, MockAttributes.new)
+    request, token, request_nonce = av.verify(message, MockAttributes.new)
 
+    expect(request_nonce).not_to be_nil
+    expect(request_nonce.casecmp?(nonce)).to be true
     expect(request).not_to be_nil
     expect(token).not_to be_nil
     expect(token.identity.casecmp?(identity)).to be true
