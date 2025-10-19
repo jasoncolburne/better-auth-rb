@@ -1,6 +1,7 @@
 require_relative '../messages/access'
 require_relative '../messages/account'
 require_relative '../messages/device'
+require_relative '../messages/recovery'
 require_relative '../messages/session'
 
 module BetterAuth

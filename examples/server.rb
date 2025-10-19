@@ -140,6 +140,10 @@ module Examples
       wrap_response(message) { |msg| @ba.unlink_device(msg) }
     end
 
+    def change_recovery_key(message)
+      wrap_response(message) { |msg| @ba.change_recovery_key(msg) }
+    end
+
     def start_authentication(message)
       wrap_response(message) { |msg| @ba.request_session(msg) }
     end
@@ -237,6 +241,10 @@ end
 
 post '/device/unlink' do
   server.unlink(request.body.read)
+end
+
+post '/recovery/change' do
+  server.change_recovery_key(request.body.read)
 end
 
 post '/key/response' do

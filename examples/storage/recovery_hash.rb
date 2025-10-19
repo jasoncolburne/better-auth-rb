@@ -24,6 +24,14 @@ module Examples
 
         nil
       end
+
+      def change(identity, key_hash)
+        raise 'not found' unless @data_by_identity.key?(identity)
+
+        @data_by_identity[identity] = key_hash
+
+        nil
+      end
     end
   end
 end
