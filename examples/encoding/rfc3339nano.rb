@@ -4,7 +4,8 @@ module Examples
   module Encoding
     class Rfc3339Nano
       def format(when_time)
-        when_time.utc.iso8601(9)
+        # Use millisecond precision (3 digits) instead of nanoseconds (9 digits)
+        when_time.utc.iso8601(3)
       end
 
       def parse(when_string)
