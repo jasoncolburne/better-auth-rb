@@ -3,6 +3,7 @@ require_relative '../messages/account'
 
 module BetterAuth
   module API
+    # rubocop:disable Metrics/ClassLength
     class BetterAuthServer
       def create_account(message)
         request = Messages::CreateAccountRequest.parse(message)
@@ -125,6 +126,38 @@ module BetterAuth
 
         response.serialize
       end
+
+      def change_recovery_key(message)
+        request = Messages::ChangeRecoveryKeyRequest.parse(message)
+
+        request.verify(@crypto.verifier, request.payload.request.authentication.public_key)
+
+        @store.authentication.key.rotate(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.device,
+          request.payload.request.authentication.public_key,
+          request.payload.request.authentication.rotation_hash
+        )
+
+        @store.recovery.hash.change(
+          request.payload.request.authentication.identity,
+          request.payload.request.authentication.recovery_hash
+        )
+
+        server_identity = @crypto.key_pair.response.identity
+
+        # this is replayable, and should be fixed but making it not fixed
+        response = Messages::ChangeRecoveryKeyResponse.new_response(
+          Messages::ChangeRecoveryKeyResponsePayload.new,
+          server_identity,
+          request.payload.access.nonce
+        )
+
+        response.sign(@crypto.key_pair.response)
+
+        response.serialize
+      end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

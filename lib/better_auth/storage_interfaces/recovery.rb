@@ -8,6 +8,11 @@ module BetterAuth
       def rotate(identity, old_hash, new_hash)
         raise NotImplementedError
       end
+
+      # Change forcefully changes the hash if the user loses access to the original
+      def change(identity, key_hash)
+        raise NotImplementedError
+      end
     end
   end
 end
