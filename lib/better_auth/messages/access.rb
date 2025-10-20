@@ -69,11 +69,17 @@ module BetterAuth
         }.to_json
       end
 
-      def verify_token(verifier, public_key, timestamper)
+      def verify_signature(verifier, public_key)
         raise 'nil signature' if @signature.nil?
 
         composed_payload = compose_payload
         verifier.verify(@signature, public_key, composed_payload.bytes)
+
+        nil
+      end
+
+      def verify_token_for_access(verifier, public_key, timestamper)
+        verify_signature(verifier, public_key)
 
         now = timestamper.now
         issued_at_time = timestamper.parse(@issued_at)
@@ -166,7 +172,11 @@ module BetterAuth
         )
 
         server_access_public_key = access_key_store.get(access_token.server_identity)
-        access_token.verify_token(server_access_public_key.verifier, server_access_public_key.public, timestamper)
+        access_token.verify_token_for_access(
+          server_access_public_key.verifier,
+          server_access_public_key.public,
+          timestamper
+        )
 
         composed_payload = compose_payload
         verifier.verify(@signature, access_token.public_key, composed_payload.bytes)

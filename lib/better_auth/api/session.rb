@@ -95,7 +95,7 @@ module BetterAuth
 
         access_public_key = @crypto.key_pair.access.public
 
-        token.verify_token(@crypto.key_pair.access.verifier, access_public_key, @encoding.timestamper)
+        token.verify_signature(@crypto.key_pair.access.verifier, access_public_key)
 
         hash = @crypto.hasher.sum(request.payload.request.access.public_key.bytes)
         raise 'hash mismatch' unless hash.casecmp?(token.rotation_hash)
