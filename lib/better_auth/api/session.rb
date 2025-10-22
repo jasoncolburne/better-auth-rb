@@ -93,7 +93,8 @@ module BetterAuth
           @encoding.token_encoder
         )
 
-        access_public_key = @crypto.key_pair.access.public
+        access_verification_key = @store.access.verification_key.get(token.server_identity)
+        access_public_key = access_verification_key.public
 
         token.verify_signature(@crypto.key_pair.access.verifier, access_public_key)
 

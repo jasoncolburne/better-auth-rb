@@ -61,6 +61,9 @@ module Examples
       @server_response_key = Crypto::Secp256r1.new
       server_access_key = Crypto::Secp256r1.new
 
+      @access_key_store = Examples::Storage::VerificationKeyStore.new
+      @access_key_store.add(server_access_key.identity, server_access_key)
+
       @ba = BetterAuth::API::BetterAuthServer.new(
         crypto: BetterAuth::API::CryptoContainer.new(
           hasher: hasher,
@@ -82,6 +85,7 @@ module Examples
         ),
         store: BetterAuth::API::StoresContainer.new(
           access: BetterAuth::API::AccessStoreContainer.new(
+            verification_key: @access_key_store,
             key_hash: access_key_hash_store
           ),
           authentication: BetterAuth::API::AuthenticationStoreContainer.new(
@@ -93,9 +97,6 @@ module Examples
           )
         )
       )
-
-      @access_key_store = Examples::Storage::VerificationKeyStore.new
-      @access_key_store.add(server_access_key.identity, server_access_key)
 
       @av = BetterAuth::API::AccessVerifier.new(
         crypto: BetterAuth::API::VerifierCryptoContainer.new(

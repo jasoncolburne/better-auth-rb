@@ -116,6 +116,7 @@ RSpec.describe 'BetterAuth API' do
       ),
       store: BetterAuth::API::StoresContainer.new(
         access: BetterAuth::API::AccessStoreContainer.new(
+          verification_key: access_key_store,
           key_hash: access_key_hash_store
         ),
         authentication: BetterAuth::API::AuthenticationStoreContainer.new(
