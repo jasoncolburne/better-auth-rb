@@ -67,9 +67,10 @@ module BetterAuth
     end
 
     class AccessStoreContainer
-      attr_accessor :key_hash
+      attr_accessor :verification_key, :key_hash
 
-      def initialize(key_hash:)
+      def initialize(verification_key:, key_hash:)
+        @verification_key = verification_key
         @key_hash = key_hash
       end
     end
