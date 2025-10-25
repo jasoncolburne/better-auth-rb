@@ -4,6 +4,7 @@ require_relative '../messages/access'
 
 module BetterAuth
   module API
+    # rubocop:disable Metrics/ClassLength
     class BetterAuthServer
       def request_session(message)
         request = Messages::RequestSessionRequest.parse(message)
@@ -101,6 +102,8 @@ module BetterAuth
         hash = @crypto.hasher.sum(request.payload.request.access.public_key.bytes)
         raise 'hash mismatch' unless hash.casecmp?(token.rotation_hash)
 
+        @store.authentication.key.ensure_active(token.identity, token.device)
+
         now = @encoding.timestamper.now
         refresh_expiry = @encoding.timestamper.parse(token.refresh_expiry)
 
@@ -144,5 +147,6 @@ module BetterAuth
         response.serialize
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
