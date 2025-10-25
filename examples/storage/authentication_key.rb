@@ -77,6 +77,15 @@ module Examples
 
         nil
       end
+
+      def ensure_active(identity, device)
+        raise 'not found' unless @known_devices.key?(identity)
+
+        devices = @known_devices[identity]
+        raise 'not found' unless devices.key?(device)
+
+        nil
+      end
     end
   end
 end

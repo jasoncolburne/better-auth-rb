@@ -34,6 +34,10 @@ module BetterAuth
       def delete_identity(identity)
         raise NotImplementedError
       end
+
+      def ensure_active(identity, device)
+        raise NotImplementedError
+      end
     end
   end
 end
