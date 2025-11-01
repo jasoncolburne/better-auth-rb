@@ -1,4 +1,6 @@
 # Main entry point
+require_relative 'better_auth/errors'
+
 require_relative 'better_auth/crypto_interfaces/hasher'
 require_relative 'better_auth/crypto_interfaces/noncer'
 require_relative 'better_auth/crypto_interfaces/verifier'

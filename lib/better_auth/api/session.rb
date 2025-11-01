@@ -82,8 +82,8 @@ module BetterAuth
       end
 
       # rubocop:disable Metrics/AbcSize
+      # rubocop:disable Metrics/MethodLength
       def refresh_session(message)
-        # rubocop:enable Metrics/AbcSize
         request = Messages::RefreshSessionRequest.parse(message)
 
         request.verify(@crypto.verifier, request.payload.request.access.public_key)
@@ -100,14 +100,27 @@ module BetterAuth
         token.verify_signature(@crypto.key_pair.access.verifier, access_public_key)
 
         hash = @crypto.hasher.sum(request.payload.request.access.public_key.bytes)
-        raise 'hash mismatch' unless hash.casecmp?(token.rotation_hash)
+        unless hash.casecmp?(token.rotation_hash)
+          raise InvalidHashError.new(
+            expected: token.rotation_hash,
+            actual: hash,
+            hash_type: 'rotation'
+          )
+        end
 
         @store.authentication.key.ensure_active(token.identity, token.device)
 
         now = @encoding.timestamper.now
         refresh_expiry = @encoding.timestamper.parse(token.refresh_expiry)
 
-        raise 'refresh has expired' if now > refresh_expiry
+        if now > refresh_expiry
+          now_str = @encoding.timestamper.format(now)
+          raise ExpiredTokenError.new(
+            expiry_time: token.refresh_expiry,
+            current_time: now_str,
+            token_type: 'refresh'
+          )
+        end
 
         @store.access.key_hash.reserve(hash)
 
@@ -146,6 +159,8 @@ module BetterAuth
 
         response.serialize
       end
+      # rubocop:enable Metrics/MethodLength
+      # rubocop:enable Metrics/AbcSize
     end
     # rubocop:enable Metrics/ClassLength
   end

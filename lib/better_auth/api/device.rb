@@ -18,7 +18,10 @@ module BetterAuth
         )
 
         unless link_container.payload.authentication.identity.casecmp?(request.payload.request.authentication.identity)
-          raise 'mismatched identities'
+          raise MismatchedIdentitiesError.new(
+            link_container_identity: link_container.payload.authentication.identity,
+            request_identity: request.payload.request.authentication.identity
+          )
         end
 
         device = @crypto.hasher.sum(
@@ -26,7 +29,12 @@ module BetterAuth
            link_container.payload.authentication.rotation_hash).bytes
         )
 
-        raise 'bad device derivation' unless device.casecmp?(link_container.payload.authentication.device)
+        unless device.casecmp?(link_container.payload.authentication.device)
+          raise InvalidDeviceError.new(
+            provided: link_container.payload.authentication.device,
+            calculated: device
+          )
+        end
 
         @store.authentication.key.rotate(
           request.payload.request.authentication.identity,
