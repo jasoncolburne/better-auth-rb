@@ -99,7 +99,7 @@ examples/
 │   └── secp256r1.rb                # SECP256R1 signing/verification
 ├── encoding/                       # Example encoding implementations
 │   ├── identity_verifier.rb        # Identity verification
-│   ├── rfc3339nano.rb              # Timestamper
+│   ├── rfc3339.rb              # Timestamper
 │   └── token_encoder.rb            # Token encoding
 ├── storage/                        # Example storage implementations
 │   ├── authentication_key.rb       # Authentication key storage
