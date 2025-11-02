@@ -12,7 +12,7 @@ require_relative 'crypto/blake3'
 require_relative 'crypto/nonce'
 require_relative 'crypto/secp256r1'
 require_relative 'encoding/identity_verifier'
-require_relative 'encoding/rfc3339nano'
+require_relative 'encoding/rfc3339'
 require_relative 'encoding/token_encoder'
 require_relative 'storage/authentication_key'
 require_relative 'storage/authentication_nonce'
@@ -55,7 +55,7 @@ module Examples
       recovery_hash_store = Storage::InMemoryRecoveryHashStore.new
 
       identity_verifier = Encoding::MockIdentityVerifier.new(hasher)
-      timestamper = Encoding::Rfc3339Nano.new
+      timestamper = Encoding::Rfc3339.new
       token_encoder = Encoding::TokenEncoder.new
 
       @server_response_key = Crypto::Secp256r1.new

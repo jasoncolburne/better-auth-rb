@@ -12,7 +12,7 @@ require_relative '../examples/crypto/blake3'
 require_relative '../examples/crypto/nonce'
 require_relative '../examples/crypto/secp256r1'
 require_relative '../examples/encoding/identity_verifier'
-require_relative '../examples/encoding/rfc3339nano'
+require_relative '../examples/encoding/rfc3339'
 require_relative '../examples/encoding/token_encoder'
 require_relative '../examples/storage/authentication_key'
 require_relative '../examples/storage/authentication_nonce'
@@ -84,7 +84,7 @@ RSpec.describe 'BetterAuth API' do
     recovery_hash_store = Examples::Storage::InMemoryRecoveryHashStore.new
 
     identity_verifier = Examples::Encoding::MockIdentityVerifier.new(hasher)
-    timestamper = Examples::Encoding::Rfc3339Nano.new
+    timestamper = Examples::Encoding::Rfc3339.new
     token_encoder = Examples::Encoding::TokenEncoder.new
 
     server_response_key = Examples::Crypto::Secp256r1.new
