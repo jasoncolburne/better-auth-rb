@@ -5,6 +5,7 @@ module BetterAuth
   module API
     # rubocop:disable Metrics/ClassLength
     class BetterAuthServer
+      # rubocop:disable Metrics/AbcSize
       def create_account(message)
         request = Messages::CreateAccountRequest.parse(message)
 
@@ -24,7 +25,12 @@ module BetterAuth
            request.payload.request.authentication.rotation_hash).bytes
         )
 
-        raise 'bad device derivation' unless device.casecmp?(request.payload.request.authentication.device)
+        unless device.casecmp?(request.payload.request.authentication.device)
+          raise InvalidDeviceError.new(
+            provided: request.payload.request.authentication.device,
+            calculated: device
+          )
+        end
 
         @store.recovery.hash.register(
           identity,
@@ -51,6 +57,7 @@ module BetterAuth
 
         response.serialize
       end
+      # rubocop:enable Metrics/AbcSize
 
       # rubocop:disable Metrics/AbcSize
       def recover_account(message)
@@ -63,7 +70,12 @@ module BetterAuth
            request.payload.request.authentication.rotation_hash).bytes
         )
 
-        raise 'bad device derivation' unless device.casecmp?(request.payload.request.authentication.device)
+        unless device.casecmp?(request.payload.request.authentication.device)
+          raise InvalidDeviceError.new(
+            provided: request.payload.request.authentication.device,
+            calculated: device
+          )
+        end
 
         hash = @crypto.hasher.sum(request.payload.request.authentication.recovery_key.bytes)
         @store.recovery.hash.rotate(

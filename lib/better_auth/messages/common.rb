@@ -30,7 +30,7 @@ module BetterAuth
       end
 
       def verify(verifier, public_key)
-        raise 'nil signature' if @signature.nil?
+        raise InvalidMessageError.new(field: 'signature', details: 'signature is null') if @signature.nil?
 
         composed_payload = compose_payload
         verifier.verify(@signature, public_key, composed_payload.bytes)
