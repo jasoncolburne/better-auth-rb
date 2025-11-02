@@ -47,7 +47,7 @@ module BetterAuth
       end
 
       def serialize_token(token_encoder)
-        raise 'nil signature' if @signature.nil?
+        raise InvalidMessageError.new(field: 'signature', details: 'signature is null') if @signature.nil?
 
         composed_payload = compose_payload
         raw_token = token_encoder.encode(composed_payload)
@@ -70,7 +70,7 @@ module BetterAuth
       end
 
       def verify_signature(verifier, public_key)
-        raise 'nil signature' if @signature.nil?
+        raise InvalidMessageError.new(field: 'signature', details: 'signature is null') if @signature.nil?
 
         composed_payload = compose_payload
         verifier.verify(@signature, public_key, composed_payload.bytes)
@@ -85,8 +85,24 @@ module BetterAuth
         issued_at_time = timestamper.parse(@issued_at)
         expiry_time = timestamper.parse(@expiry)
 
-        raise 'token from future' if now < issued_at_time
-        raise 'token expired' if now > expiry_time
+        if now < issued_at_time
+          now_str = timestamper.format(now)
+          time_diff = (issued_at_time - now).to_f
+          raise FutureTokenError.new(
+            issued_at: @issued_at,
+            current_time: now_str,
+            time_difference: time_diff
+          )
+        end
+
+        if now > expiry_time
+          now_str = timestamper.format(now)
+          raise ExpiredTokenError.new(
+            expiry_time: @expiry,
+            current_time: now_str,
+            token_type: 'access'
+          )
+        end
 
         nil
       end
@@ -185,8 +201,25 @@ module BetterAuth
         access_time = timestamper.parse(@payload.access.timestamp)
         expiry = access_time + nonce_store.lifetime
 
-        raise 'stale request' if now > expiry
-        raise 'request from future' if now < access_time
+        if now > expiry
+          now_str = timestamper.format(now)
+          max_age = nonce_store.lifetime
+          raise StaleRequestError.new(
+            request_timestamp: @payload.access.timestamp,
+            current_time: now_str,
+            maximum_age: max_age
+          )
+        end
+
+        if now < access_time
+          now_str = timestamper.format(now)
+          time_diff = (access_time - now).to_f
+          raise FutureRequestError.new(
+            request_timestamp: @payload.access.timestamp,
+            current_time: now_str,
+            time_difference: time_diff
+          )
+        end
 
         nonce_store.reserve(@payload.access.nonce)
 
