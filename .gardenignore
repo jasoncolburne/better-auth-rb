@@ -1,0 +1,9 @@
+# Ruby
+vendor/bundle
+.bundle
+
+# Logs
+*.log
+
+# OS
+.DS_Store
